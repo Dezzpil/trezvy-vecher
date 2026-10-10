@@ -75,7 +75,7 @@ let stack=['home'], st={};
 function go(s,p){stack.push(s);st=p||{};render();window.scrollTo(0,0)}
 function tab(s){stack=[s];st={};render();window.scrollTo(0,0)}
 window.goBack=()=>{stopTimer();if(rec)stopRec();if(stack.length>1){stack.pop();st={};render();return 'ok'}return 'exit'};
-window.openFromNotification=k=>{if(k==='craving')go('craving');else go('checkin',{kind:k})};
+window.openFromNotification=k=>{if(k.startsWith('tab:'))tab(k.slice(4));else if(k==='craving')go('craving');else go('checkin',{kind:k})};
 const NAV=[['home','⌂','Сегодня'],['history','≡','Дневник'],['stats','▦','Динамика'],['settings','⚙','Настройки']];
 function render(){
  const s=stack[stack.length-1];
@@ -276,5 +276,43 @@ function buildMd(){const L=[];const s=streaks();
  return L.join('\n')}
 function doExport(){if(!HAS){alert(buildMd());return}const r=Android.export(buildMd(),'trezvo_'+today()+'.zip');if(r!=='ok')alert(r)}
 if(HAS)Android.setReminders(JSON.stringify(D.reminders));
+
+// ---------- Самотест (запускается только по adb-интенту selftest или ?selftest) ----------
+window.onerror=(m,src,l)=>{console.error('JSERROR '+m+' @'+l)};
+async function selfTest(){
+ const errs=[],log=m=>console.log('SELFTEST '+m),ok=(c,m)=>{if(!c){errs.push(m);console.error('SELFTEST FAIL '+m)}else log('pass '+m)};
+ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+ const backup=JSON.stringify(D);const testAudio=[];
+ try{
+  for(const t of ['home','history','stats','settings']){tab(t);ok(document.getElementById('app').innerHTML.length>100,'render '+t)}
+  tab('home');go('craving');ok(document.body.innerHTML.includes('Насколько сильно'),'craving screen');
+  [...document.querySelectorAll('.chip')].filter(b=>['тишины','именно опьянения','мысль о вечере/отдыхе'].includes(b.textContent)).forEach(b=>b.click());
+  F.intensity=8;F.note='тест';const cid=F.id;
+  if(HAS){const r=Android.startRecording(F.id+'_1');ok(!r.startsWith('error')&&r!=='no_permission','start recording: '+r);rec=r;recStart=Date.now();await sleep(2500);stopRec();
+   ok(F.audio.length===1,'audio attached');testAudio.push(...F.audio);ok(Android.audioSize(F.audio[0])>500,'audio file size '+Android.audioSize(F.audio[0]))}
+  saveCraving();ok(stack.at(-1)==='advice','advice screen');
+  const h=document.getElementById('app').innerHTML;ok(h.includes('Уйди туда, где тихо')&&h.includes('тяга идёт волной'),'tips by wants');ok(h.includes('Сильная тяга'),'high intensity warning');
+  startTimer(2);await sleep(2600);ok(document.getElementById('tm').textContent==='Волна прошла?','timer finished');
+  outcome('passed');ok(D.entries.find(e=>e.id===cid).outcome==='passed','outcome saved');
+  for(const k of ['morning','afternoon','evening','night']){tab('home');go('checkin',{kind:k});ok(document.body.innerHTML.includes(CP[k]),'checkin screen '+k);
+   if(k==='night'){F.drank=false;F.freeTime=true;F.relief=true;F.stronger='duties'}
+   if(k==='afternoon')F.thought=false;
+   if(k==='evening'){F.agreed=true;F.ritualDone=[D.ritual[0]]}
+   F.mood=6;saveCheck()}
+  const s=streaks();ok(s.sober>=1,'sober streak '+s.sober);ok(s.check>=1,'checkin streak '+s.check);
+  tab('home');const nDone=(document.getElementById('app').innerHTML.match(/✓ отмечено/g)||[]).length;ok(nDone===4,'4 checkpoints done: '+nDone+' '+JSON.stringify(D.entries.map(e=>e.kind||e.type)));
+  tab('history');ok(document.body.innerHTML.includes('Тяга 8/10'),'history shows craving');
+  tab('stats');ok(document.body.innerHTML.includes('именно опьянения'),'stats shows wants');
+  const md=buildMd();ok(md.includes('Тяга 8/10')&&md.includes('пил: нет')&&md.includes('исход: отпустило'),'markdown export content');
+  if(HAS){const raw=Android.load();ok(JSON.parse(raw).entries.length===D.entries.length,'persisted to file');
+   const fn='selftest.zip';ok(Android.export(md,fn)==='ok','export zip');ok(+Android.exportPath(fn)>100,'zip size '+Android.exportPath(fn));
+   Android.testNotify('evening');log('notification sent')}
+ }catch(e){errs.push('exception '+e.message+' '+e.stack);console.error('SELFTEST EXC '+e.message)}
+ D=JSON.parse(backup);save();testAudio.forEach(a=>HAS&&Android.deleteAudio(a));tab('home');
+ console.log('SELFTEST_RESULT '+(errs.length?'FAIL '+errs.join(' | '):'OK'));
+ document.title='SELFTEST_RESULT '+(errs.length?'FAIL':'OK');
+ return errs;
+}
+if(location.search.includes('selftest'))setTimeout(selfTest,100);
 render();
 </script></body></html>

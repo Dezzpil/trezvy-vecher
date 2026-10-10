@@ -1,4 +1,4 @@
-name: Build APK
+name: Build & test APK
 on: [push, workflow_dispatch]
 jobs:
   build:
@@ -7,7 +7,31 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 21 }
-      - uses: android-actions/setup-android@v3
-      - run: ./gradlew assembleRelease
+      - name: Build release APK
+        run: ./gradlew assembleRelease --no-daemon
       - uses: actions/upload-artifact@v4
         with: { name: trezvy-vecher-apk, path: app/build/outputs/apk/release/app-release.apk }
+
+  emulator-test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: trezvy-vecher-apk, path: apk }
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Run on Android 14 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -allow-host-audio
+          script: bash scripts/smoke.sh apk/app-release.apk
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: emulator-screenshots-and-logs, path: smoke-out }

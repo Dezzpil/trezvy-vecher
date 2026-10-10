@@ -30,7 +30,12 @@ public class MainActivity extends Activity {
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
-        web.setWebChromeClient(new WebChromeClient());
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override public boolean onConsoleMessage(android.webkit.ConsoleMessage m) {
+                android.util.Log.i("TrezvoJS", m.message() + " (" + m.sourceId() + ":" + m.lineNumber() + ")");
+                return true;
+            }
+        });
         web.addJavascriptInterface(new Bridge(), "Android");
         setContentView(web);
         web.loadUrl("file:///android_asset/index.html");
@@ -46,6 +51,7 @@ public class MainActivity extends Activity {
 
     private void handleIntent(Intent i) {
         if (i == null) return;
+        if (i.getBooleanExtra("selftest", false)) { web.postDelayed(() -> web.evaluateJavascript("selfTest()", null), 1500); return; }
         final String screen = i.getStringExtra("screen");
         if (screen != null) web.postDelayed(() -> web.evaluateJavascript("window.openFromNotification && openFromNotification('" + screen + "')", null), 600);
     }
@@ -110,6 +116,11 @@ public class MainActivity extends Activity {
             } catch (Exception e) { return false; }
         }
         @JavascriptInterface public void stop() { stopPlayback(); }
+        @JavascriptInterface public long audioSize(String name) { File f = new File(audioDir(), name); return f.exists() ? f.length() : -1; }
+        @JavascriptInterface public void testNotify(String kind) {
+            Intent it = new Intent(MainActivity.this, ReminderReceiver.class); it.putExtra("kind", kind); sendBroadcast(it);
+        }
+        @JavascriptInterface public String exportPath(String fileName) { File f = new File(new File(getCacheDir(), "exports"), fileName); return f.exists() ? f.length() + "" : "-1"; }
         @JavascriptInterface public void deleteAudio(String name) { new File(audioDir(), name).delete(); }
         @JavascriptInterface public void setReminders(String json) {
             getSharedPreferences("r", MODE_PRIVATE).edit().putString("times", json).apply();
