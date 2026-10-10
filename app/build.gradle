@@ -1,0 +1,20 @@
+plugins { id 'com.android.application' }
+android {
+  namespace 'ru.orlov.trezvo'
+  compileSdk 35
+  defaultConfig { applicationId 'ru.orlov.trezvo'; minSdk 26; targetSdk 35; versionCode 1; versionName '1.0' }
+  def ks = System.getenv('TREZVO_KEYSTORE') ?: rootProject.file('keystore/trezvo.keystore').path
+  def hasKs = new File(ks).exists()
+  signingConfigs {
+    mine {
+      if (hasKs) {
+        storeFile file(ks)
+        storePassword System.getenv('TREZVO_KS_PASS') ?: ''
+        keyAlias System.getenv('TREZVO_KEY_ALIAS') ?: 'trezvo'
+        keyPassword System.getenv('TREZVO_KEY_PASS') ?: System.getenv('TREZVO_KS_PASS') ?: ''
+      }
+    }
+  }
+  buildTypes { release { minifyEnabled false; signingConfig hasKs ? signingConfigs.mine : signingConfigs.debug } }
+  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
