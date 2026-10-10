@@ -17,7 +17,7 @@ button.small{width:auto;padding:8px 12px;font-size:14px}
 button.danger{background:#5a2c26}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{padding:9px 13px;border-radius:999px;background:var(--card2);font-size:15px;width:auto}
-.chip.on{background:var(--acc);color:#1b1b12;font-weight:600}
+.chip.wide{width:100%;border-radius:12px}.chip.on{background:var(--acc);color:#1b1b12;font-weight:600}
 textarea,input[type=text],input[type=time],input[type=number]{width:100%;background:#0c1916;color:var(--tx);border:1px solid #2c4a42;border-radius:12px;padding:11px;font:inherit}
 textarea{min-height:80px}
 input[type=range]{width:100%;accent-color:var(--acc)}
@@ -174,7 +174,7 @@ V.checkin=()=>{const k=st.kind;if(!st.init){F={id:uid(),ts:Date.now(),type:'chec
   <div class="${F.drank?'':'hide'}"><label>Сколько банок</label><input type="number" min="0" value="${F.cans}" oninput="F.cans=+this.value"></div>
   <label>Было время, когда я действительно ничего не должен?</label>${yn('freeTime')}
   <label>Получилось почувствовать облегчение до алкоголя / без него?</label>${yn('relief')}
-  <label>Что было сильнее?</label><div class="row"><button class="chip ${F.stronger==='craving'?'on':''}" onclick="F.stronger='craving';render()">тяга к опьянению</button><button class="chip ${F.stronger==='duties'?'on':''}" onclick="F.stronger='duties';render()">не мог отключиться от обязанностей</button></div>
+  <label>Что было сильнее?</label><div><button style="margin-bottom:8px" class="chip wide ${F.stronger==='craving'?'on':''}" onclick="F.stronger='craving';render()">тяга к опьянению</button><button class="chip wide ${F.stronger==='duties'?'on':''}" onclick="F.stronger='duties';render()">не мог отключиться от обязанностей</button></div>
   <div class="tip">Хмурый трезвый вечер — не доказательство, что без пива хуже. Это данные. Если подавленность держится — обсуди с врачом.</div>`;
  return `<header><h1>${CP[k]}</h1><div class="sub">${fmtT(F.ts)}</div></header><div class="wrap"><div class="card">
  <label>Настроение: <b id="mv">${F.mood}</b>/10</label><input type="range" min="0" max="10" value="${F.mood}" oninput="F.mood=+this.value;mv.textContent=this.value">
