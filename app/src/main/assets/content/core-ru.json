@@ -1,0 +1,2708 @@
+{
+ "pack_id": "core-ru",
+ "version": "1.0.0",
+ "format": 1,
+ "min_app_version": 3,
+ "published_at": "2026-10-23T00:00:00Z",
+ "locale": "ru-RU",
+ "taxonomy": {
+  "needs": [
+   {
+    "key": "leave_me_alone",
+    "label": "Чтобы от меня отстали"
+   },
+   {
+    "key": "switch_off",
+    "label": "Выключить голову"
+   },
+   {
+    "key": "novelty",
+    "label": "Чего-нибудь интересного"
+   },
+   {
+    "key": "comfort",
+    "label": "Тепла и уюта"
+   },
+   {
+    "key": "company",
+    "label": "Немного общения"
+   },
+   {
+    "key": "movement",
+    "label": "Подвигаться"
+   },
+   {
+    "key": "rest",
+    "label": "Просто передохнуть"
+   }
+  ],
+  "categories": [
+   {
+    "key": "adventure",
+    "label": "Маленькое приключение"
+   },
+   {
+    "key": "comfort",
+    "label": "Уют"
+   },
+   {
+    "key": "interest",
+    "label": "Интерес"
+   },
+   {
+    "key": "body",
+    "label": "Тело"
+   },
+   {
+    "key": "social",
+    "label": "Люди"
+   },
+   {
+    "key": "pause",
+    "label": "Пауза"
+   },
+   {
+    "key": "creative",
+    "label": "Творчество"
+   },
+   {
+    "key": "alcohol_shift",
+    "label": "Хотя бы одно изменение"
+   }
+  ],
+  "decline_reasons": [
+   {
+    "key": "too_hard",
+    "label": "Слишком много сил"
+   },
+   {
+    "key": "cant_now",
+    "label": "Не могу сейчас"
+   },
+   {
+    "key": "dislike",
+    "label": "Не люблю такое"
+   },
+   {
+    "key": "bored",
+    "label": "Уже надоело"
+   },
+   {
+    "key": "other",
+    "label": "Просто не то"
+   }
+  ],
+  "tags": [
+   {
+    "key": "walking",
+    "label": "прогулки"
+   },
+   {
+    "key": "photo",
+    "label": "фотографировать"
+   },
+   {
+    "key": "reading",
+    "label": "читать"
+   },
+   {
+    "key": "music",
+    "label": "музыка"
+   },
+   {
+    "key": "games",
+    "label": "игры"
+   },
+   {
+    "key": "cooking",
+    "label": "готовить"
+   },
+   {
+    "key": "sport",
+    "label": "физнагрузка"
+   },
+   {
+    "key": "calls",
+    "label": "звонки"
+   },
+   {
+    "key": "writing",
+    "label": "писать"
+   },
+   {
+    "key": "drawing",
+    "label": "рисовать"
+   },
+   {
+    "key": "voice",
+    "label": "говорить вслух"
+   },
+   {
+    "key": "screen",
+    "label": "экран"
+   },
+   {
+    "key": "listening",
+    "label": "слушать"
+   },
+   {
+    "key": "water",
+    "label": "вода, душ"
+   },
+   {
+    "key": "quiet",
+    "label": "тишина"
+   }
+  ],
+  "constraints": [
+   {
+    "key": "mobility",
+    "label": "Трудно много двигаться"
+   },
+   {
+    "key": "noise",
+    "label": "Дома нельзя шуметь"
+   },
+   {
+    "key": "no_camera",
+    "label": "Не хочу пользоваться камерой"
+   }
+  ],
+  "requires": [
+   "can_leave_home",
+   "close_person"
+  ]
+ },
+ "scenarios": [
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "outdoors",
+   "duration_min": 10,
+   "duration_max": 20,
+   "effort": 2,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 2,
+   "requires": [
+    "can_leave_home"
+   ],
+   "excludes_if": [],
+   "intoxicated_ok": false,
+   "fallback_id": "odd_details_home",
+   "tags": [
+    "walking",
+    "photo"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Нашлось что-нибудь странное? Стало легче, так же или хуже?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "three_odd_details",
+   "title": "Три странности",
+   "category": "adventure",
+   "needs": [
+    "novelty",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Выйди на короткую прогулку и найди три странные детали. Не красивые — именно странные. Если хочется, сфотографируй.",
+     "stop_permission": "Не зашло — можно бросить через пару минут.",
+     "steps": [
+      "Выйди из дома",
+      "Ищи то, что выглядит нелепо или неуместно",
+      "Три штуки — и можно домой"
+     ]
+    },
+    {
+     "key": "short",
+     "text": "Дойди до угла дома и обратно. По дороге найди одну странную деталь.",
+     "stop_permission": "Не зашло — можно бросить через пару минут.",
+     "duration_min": 5
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 3,
+   "duration_max": 7,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 2,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "photo"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "odd_details_home",
+   "title": "Дом как незнакомое место",
+   "category": "adventure",
+   "needs": [
+    "novelty",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Найди дома три детали, которых обычно не замечаешь. Одну сними так близко, чтобы было непонятно, что это.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    },
+    {
+     "key": "low_energy",
+     "text": "Не вставая, найди взглядом три вещи, которые давно не замечал.",
+     "stop_permission": "Если не идёт — просто остановись."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "any",
+   "duration_min": 5,
+   "duration_max": 15,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 2,
+   "requires": [],
+   "excludes_if": [
+    "no_camera"
+   ],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "photo"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "faces_in_things",
+   "title": "Лица в вещах",
+   "category": "adventure",
+   "needs": [
+    "novelty"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Найди три предмета, которые похожи на лица: розетка, сумка, фасад. Сфотографируй самое недовольное.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "outdoors",
+   "duration_min": 15,
+   "duration_max": 30,
+   "effort": 2,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 2,
+   "requires": [
+    "can_leave_home"
+   ],
+   "excludes_if": [
+    "mobility"
+   ],
+   "intoxicated_ok": false,
+   "fallback_id": "sky_watch",
+   "tags": [
+    "walking"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "other_route",
+   "title": "Другой дорогой",
+   "category": "adventure",
+   "needs": [
+    "novelty",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Пройди привычный маршрут другой дорогой: через двор, где не бывал, или по другой стороне улицы. Цель — не дойти, а посмотреть.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "outdoors",
+   "duration_min": 10,
+   "duration_max": 25,
+   "effort": 2,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [
+    "can_leave_home"
+   ],
+   "excludes_if": [
+    "mobility"
+   ],
+   "intoxicated_ok": false,
+   "fallback_id": "blanket_silence",
+   "tags": [
+    "walking",
+    "quiet"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "walk_without_phone",
+   "title": "Прогулка без телефона",
+   "category": "adventure",
+   "needs": [
+    "leave_me_alone",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Выйди на 15 минут и оставь телефон дома или в беззвучном режиме в кармане. Никуда не надо, никому не надо отвечать.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "any",
+   "duration_min": 3,
+   "duration_max": 5,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "quiet"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "sky_watch",
+   "title": "Кусок неба",
+   "category": "pause",
+   "needs": [
+    "rest",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Найди окно или балкон, откуда видно небо подальше. Три минуты просто смотри, как меняются облака или огни.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 10,
+   "duration_max": 20,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "cooking"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось хоть немного согреться и выдохнуть?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "cocoa_new_spot",
+   "title": "Какао в другом месте",
+   "category": "comfort",
+   "needs": [
+    "comfort",
+    "leave_me_alone"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Сделай какао или кофе и устройся там, где обычно не сидишь: на подоконнике, на полу, на балконе.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    },
+    {
+     "key": "low_energy",
+     "text": "Налей себе что-нибудь тёплое и сядь в другом месте. Больше ничего.",
+     "stop_permission": "Если не идёт — просто остановись."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 10,
+   "duration_max": 20,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "water"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "shower_reset",
+   "title": "Душ-перезагрузка",
+   "category": "comfort",
+   "needs": [
+    "comfort",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Прими душ и переоденься в чистое и удобное. Как будто день закончился и начинается другой, твой.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 10,
+   "duration_max": 15,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "quiet"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "blanket_silence",
+   "title": "Плед и тишина",
+   "category": "comfort",
+   "needs": [
+    "leave_me_alone",
+    "rest"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Укройся пледом и 10 минут побудь в тишине. Без телефона, без задач. Можно просто лежать.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 20,
+   "duration_max": 40,
+   "effort": 2,
+   "cost": 1,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "cooking"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "simple_tasty",
+   "title": "Что-то вкусное",
+   "category": "comfort",
+   "needs": [
+    "comfort"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Приготовь что-нибудь простое и вкусное: яичницу с чем-нибудь неожиданным, гренки, бутерброд «как в детстве».",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    },
+    {
+     "key": "low_energy",
+     "text": "Съешь что-нибудь вкусное, что уже есть дома. Сядь за стол, не на ходу.",
+     "stop_permission": "Если не идёт — просто остановись.",
+     "duration_min": 5
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 7,
+   "duration_max": 15,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "cooking",
+    "quiet"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "slow_tea",
+   "title": "Медленный чай",
+   "category": "comfort",
+   "needs": [
+    "comfort",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Завари чай очень медленно, как будто это важная церемония: чайник, чашка, ожидание. Пей, пока горячий.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 2,
+   "duration_max": 5,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "comfy_clothes",
+   "title": "Самое удобное",
+   "category": "comfort",
+   "needs": [
+    "comfort",
+    "rest"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Переоденься в самую удобную одежду, какая есть. Рабочий день официально снят.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 10,
+   "duration_max": 30,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "cooking"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "eat_properly",
+   "title": "Нормально поесть",
+   "category": "comfort",
+   "needs": [
+    "comfort",
+    "rest"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Поешь нормально — горячее, за столом. На голодный и уставший организм вечер всегда кажется хуже.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 5,
+   "duration_max": 30,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "reading"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Зацепило что-нибудь в тексте?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "two_pages",
+   "title": "Две страницы",
+   "category": "interest",
+   "needs": [
+    "novelty",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Открой любую книгу, которая есть под рукой. Прочитай две страницы. Найди фразу, с которой хочется поспорить.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    },
+    {
+     "key": "low_energy",
+     "text": "Открой книгу на случайной странице и прочитай один абзац. Этого достаточно.",
+     "stop_permission": "Если не идёт — просто остановись."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 10,
+   "duration_max": 25,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 2,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "reading",
+    "screen"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "short_story",
+   "title": "Один рассказ",
+   "category": "interest",
+   "needs": [
+    "novelty",
+    "leave_me_alone"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Прочитай один короткий рассказ на 10 минут — например, Чехова, Зощенко или О. Генри. Не понравится начало — бросай.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 10,
+   "duration_max": 30,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "games",
+    "screen"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "one_game_round",
+   "title": "Одна партия",
+   "category": "interest",
+   "needs": [
+    "switch_off",
+    "leave_me_alone"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Сыграй одну партию или один уровень в игру, которая нравится. Одну — без обязательства продолжать.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 4,
+   "duration_max": 10,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "music",
+    "listening"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "forgotten_album",
+   "title": "Забытая песня",
+   "category": "interest",
+   "needs": [
+    "comfort",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Включи песню из альбома, который давно не слушал. На эти несколько минут больше ничего не делай. Можно лежать.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 40,
+   "duration_max": 150,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "screen"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "chosen_film",
+   "title": "Фильм, который правда хочется",
+   "category": "interest",
+   "needs": [
+    "comfort",
+    "leave_me_alone"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Выбери фильм или серию, которые давно хотел посмотреть, — не фоном, а по-настоящему. Устройся удобно.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 15,
+   "duration_max": 40,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 2,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "listening",
+    "screen"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "unknown_topic",
+   "title": "Неизвестная тема",
+   "category": "interest",
+   "needs": [
+    "novelty"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Включи лекцию или выпуск подкаста о том, о чём ты ничего не знаешь: история, космос, грибы, архитектура.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 5,
+   "duration_max": 20,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 2,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "reading",
+    "screen"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "wiki_rabbit",
+   "title": "Кроличья нора",
+   "category": "interest",
+   "needs": [
+    "novelty",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Открой случайную статью Википедии («Случайная статья» в меню). Перейди по трём ссылкам подряд. Куда тебя занесло?",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 5,
+   "duration_max": 10,
+   "effort": 2,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [
+    "mobility"
+   ],
+   "intoxicated_ok": false,
+   "fallback_id": null,
+   "tags": [
+    "sport"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "warmup_5",
+   "title": "Разминка на 5 минут",
+   "category": "body",
+   "needs": [
+    "movement",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Пять минут разминки: шея, плечи, наклоны, вращения. Не тренировка — просто напомнить телу, что оно есть.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 2,
+   "duration_max": 5,
+   "effort": 2,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [
+    "mobility"
+   ],
+   "intoxicated_ok": false,
+   "fallback_id": null,
+   "tags": [
+    "sport"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "ten_reps",
+   "title": "10 и 10",
+   "category": "body",
+   "needs": [
+    "movement",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "10 приседаний и 10 отжиманий — можно от стола или стены. Без рекордов. Просто встряхнуть себя.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 2,
+   "duration_max": 5,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "quiet"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "window_air",
+   "title": "Открытое окно",
+   "category": "body",
+   "needs": [
+    "switch_off",
+    "rest"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Открой окно и три минуты постой у него. Подыши, послушай улицу.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 5,
+   "duration_max": 15,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "floor_stretch",
+   "title": "Растяжка лёжа",
+   "category": "body",
+   "needs": [
+    "rest",
+    "movement"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Ляг на пол на коврик или плед. Потянись во все стороны, как кот. Подтяни колени к груди, полежи.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 1,
+   "duration_max": 3,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "water"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "cold_water_face",
+   "title": "Холодная вода",
+   "category": "body",
+   "needs": [
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Умой лицо холодной водой. Три раза. Тело быстрее выключает мысли, чем уговоры.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "any",
+   "duration_min": 2,
+   "duration_max": 5,
+   "effort": 1,
+   "cost": 0,
+   "social": "with_close",
+   "novelty": 1,
+   "requires": [
+    "close_person"
+   ],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "music"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "send_song",
+   "title": "Песня без отчёта",
+   "category": "social",
+   "needs": [
+    "company"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Отправь близкому человеку песню или смешную картинку. Не нужно рассказывать, как прошёл день.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "any",
+   "duration_min": 5,
+   "duration_max": 15,
+   "effort": 2,
+   "cost": 0,
+   "social": "with_close",
+   "novelty": 1,
+   "requires": [
+    "close_person"
+   ],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "calls"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "call_no_reason",
+   "title": "Звонок без повода",
+   "category": "social",
+   "needs": [
+    "company"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Позвони кому-нибудь без повода на пять минут. Можно сказать прямо: «Просто захотелось поговорить».",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "outdoors",
+   "duration_min": 15,
+   "duration_max": 30,
+   "effort": 2,
+   "cost": 0,
+   "social": "among_people",
+   "novelty": 1,
+   "requires": [
+    "can_leave_home"
+   ],
+   "excludes_if": [],
+   "intoxicated_ok": false,
+   "fallback_id": "send_song",
+   "tags": [
+    "walking"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "among_people",
+   "title": "Рядом с людьми",
+   "category": "social",
+   "needs": [
+    "company",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Выйди туда, где есть люди, но с ними не нужно разговаривать: сквер, двор, улица. Просто побудь рядом.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 5,
+   "duration_max": 5,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "quiet"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "five_min_nothing",
+   "title": "Пять минут ничьих",
+   "category": "pause",
+   "needs": [
+    "leave_me_alone",
+    "rest"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Пять минут, которыми ты никому не обязан. Не медитация и не саморазвитие. Просто время без задачи.",
+     "stop_permission": "Тут нельзя сделать неправильно."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 3,
+   "duration_max": 8,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "music",
+    "listening"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "lie_one_track",
+   "title": "Лёжа под один трек",
+   "category": "pause",
+   "needs": [
+    "rest",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Ляг, закрой глаза и послушай одну песню целиком. Только её.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 2,
+   "duration_max": 3,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "quiet"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "five_sounds",
+   "title": "Пять звуков",
+   "category": "pause",
+   "needs": [
+    "switch_off",
+    "rest"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Закрой глаза и насчитай пять разных звуков вокруг — ближних и дальних.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "any",
+   "duration_min": 3,
+   "duration_max": 10,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 2,
+   "requires": [],
+   "excludes_if": [
+    "no_camera"
+   ],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "photo"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "album_cover",
+   "title": "Обложка альбома",
+   "category": "creative",
+   "needs": [
+    "novelty"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Сфотографируй любой предмет так, будто это обложка альбома. Название придумай максимально нелепое.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 2,
+   "duration_max": 5,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 2,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "writing"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "museum_caption",
+   "title": "Музей сегодняшнего дня",
+   "category": "creative",
+   "needs": [
+    "novelty",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Выбери один предмет сегодняшнего дня и придумай ему музейную подпись. Можно язвительную. «Кружка. Пережила три совещания».",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 2,
+   "duration_max": 5,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "voice"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "voice_absurd",
+   "title": "Абсурд дня",
+   "category": "creative",
+   "needs": [
+    "switch_off",
+    "leave_me_alone"
+   ],
+   "action": "open_voice",
+   "variants": [
+    {
+     "key": "default",
+     "text": "Расскажи голосом самую абсурдную часть сегодняшнего дня. Разбирать и исправлять ничего не будем.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 5,
+   "duration_max": 10,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 2,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "drawing"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "day_map",
+   "title": "Карта дня",
+   "category": "creative",
+   "needs": [
+    "novelty",
+    "switch_off"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Нарисуй сегодняшний день как карту: «болото совещаний», «перевал обеда», «гора посуды». Пять минут, кривые линии — нормально.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 3,
+   "duration_max": 7,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 2,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "writing"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "day_menu",
+   "title": "Меню дня",
+   "category": "creative",
+   "needs": [
+    "novelty"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Составь меню ресторана, где подают твой сегодняшний день. «Салат из недосыпа», «котлета дедлайна». Три блюда.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 5,
+   "duration_max": 20,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 3,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Удалось немного переключиться?",
+    "scale": "better_same_worse",
+    "ask_craving": true,
+    "delay_min": 20
+   },
+   "id": "useless_thing",
+   "title": "Бесполезное дело",
+   "category": "creative",
+   "needs": [
+    "novelty",
+    "leave_me_alone"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Сделай одну маленькую вещь, от которой совершенно никакой пользы: построй башню из книг, переставь предметы на полке по цвету.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 1,
+   "duration_max": 120,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Вечер хоть чем-то отличается от вчерашнего?",
+    "scale": "better_same_worse",
+    "ask_craving": false,
+    "delay_min": 40
+   },
+   "id": "shift_no_background",
+   "title": "Без фонового видео",
+   "category": "alcohol_shift",
+   "needs": [
+    "switch_off",
+    "comfort"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Сегодня без привычного фонового видео. Выбери одну вещь — альбом, фильм или игру, — которую действительно хочется.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 1,
+   "duration_max": 60,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "music"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Вечер хоть чем-то отличается от вчерашнего?",
+    "scale": "better_same_worse",
+    "ask_craving": false,
+    "delay_min": 40
+   },
+   "id": "shift_conscious_music",
+   "title": "Музыка по выбору",
+   "category": "alcohol_shift",
+   "needs": [
+    "comfort"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Выбери музыку сознательно: один альбом целиком, который правда хочется услышать, а не случайный поток.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 1,
+   "duration_max": 60,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Вечер хоть чем-то отличается от вчерашнего?",
+    "scale": "better_same_worse",
+    "ask_craving": false,
+    "delay_min": 40
+   },
+   "id": "shift_other_spot",
+   "title": "Другое место",
+   "category": "alcohol_shift",
+   "needs": [
+    "novelty"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Сядь в другом месте квартиры — не там, где обычно. Просто посмотри, отличается ли вечер.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 1,
+   "duration_max": 5,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Получилось остаться в том количестве, что решил?",
+    "scale": "better_same_worse",
+    "ask_craving": false,
+    "delay_min": 60
+   },
+   "id": "shift_decide_amount",
+   "title": "Решить заранее",
+   "category": "alcohol_shift",
+   "needs": [
+    "rest"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Реши заранее, сколько будет сегодня, и достань только это. Остальное пусть останется в холодильнике.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 1,
+   "duration_max": 5,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "water"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Получилось чередовать?",
+    "scale": "better_same_worse",
+    "ask_craving": false,
+    "delay_min": 60
+   },
+   "id": "shift_water_between",
+   "title": "Вода между",
+   "category": "alcohol_shift",
+   "needs": [
+    "rest"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Поставь рядом большой стакан воды. Между банками — стакан воды.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  },
+  {
+   "revision": 1,
+   "status": "active",
+   "setting": "home",
+   "duration_min": 10,
+   "duration_max": 30,
+   "effort": 1,
+   "cost": 0,
+   "social": "solo",
+   "novelty": 1,
+   "requires": [],
+   "excludes_if": [],
+   "intoxicated_ok": true,
+   "fallback_id": null,
+   "tags": [
+    "cooking"
+   ],
+   "author": "core",
+   "notes": "",
+   "followup": {
+    "question": "Получилось сначала поесть?",
+    "scale": "better_same_worse",
+    "ask_craving": false,
+    "delay_min": 40
+   },
+   "id": "shift_eat_first",
+   "title": "Сначала поесть",
+   "category": "alcohol_shift",
+   "needs": [
+    "comfort"
+   ],
+   "variants": [
+    {
+     "key": "default",
+     "text": "Сначала нормально поешь — горячее, за столом. Всё остальное потом.",
+     "stop_permission": "Не зашло — можно бросить через пару минут."
+    }
+   ]
+  }
+ ],
+ "flows": [
+  {
+   "id": "day_plan",
+   "revision": 1,
+   "trigger": "day_plan",
+   "title": "План вечера",
+   "entry_node": "q_need",
+   "nodes": [
+    {
+     "id": "q_need",
+     "type": "question",
+     "text": "Как хочется провести сегодняшний вечер? Чего тебе будет не хватать?",
+     "skip_if": {
+      "ctx.need": "*"
+     },
+     "options": [
+      {
+       "key": "leave_me_alone",
+       "label": "Чтобы от меня отстали",
+       "sets": {
+        "need": "leave_me_alone"
+       },
+       "next": "q_energy"
+      },
+      {
+       "key": "switch_off",
+       "label": "Выключить голову",
+       "sets": {
+        "need": "switch_off"
+       },
+       "next": "q_energy"
+      },
+      {
+       "key": "novelty",
+       "label": "Чего-нибудь интересного",
+       "sets": {
+        "need": "novelty"
+       },
+       "next": "q_energy"
+      },
+      {
+       "key": "comfort",
+       "label": "Тепла и уюта",
+       "sets": {
+        "need": "comfort"
+       },
+       "next": "q_energy"
+      },
+      {
+       "key": "company",
+       "label": "Немного общения",
+       "sets": {
+        "need": "company"
+       },
+       "next": "q_energy"
+      },
+      {
+       "key": "movement",
+       "label": "Подвигаться",
+       "sets": {
+        "need": "movement"
+       },
+       "next": "q_energy"
+      },
+      {
+       "key": "rest",
+       "label": "Не знаю, всё достало",
+       "sets": {
+        "need": "rest",
+        "energy": 1
+       },
+       "next": "q_energy"
+      }
+     ],
+     "skip_next": "q_energy"
+    },
+    {
+     "id": "q_energy",
+     "type": "question",
+     "text": "Сколько сил будет на что-то новое?",
+     "skip_if": {
+      "ctx.energy": "*"
+     },
+     "options": [
+      {
+       "key": "low",
+       "label": "Только совсем простое",
+       "sets": {
+        "energy": 1,
+        "time": 10
+       },
+       "next": "q_setting"
+      },
+      {
+       "key": "mid",
+       "label": "Минут на 15–20 хватит",
+       "sets": {
+        "energy": 2,
+        "time": 20
+       },
+       "next": "q_setting"
+      },
+      {
+       "key": "high",
+       "label": "Можно выбраться или чем-то заняться",
+       "sets": {
+        "energy": 3,
+        "time": 60
+       },
+       "next": "q_setting"
+      }
+     ],
+     "skip_next": "q_setting"
+    },
+    {
+     "id": "q_setting",
+     "type": "question",
+     "text": "Получится выйти из дома?",
+     "skip_if": {
+      "profile.can_leave_home_evening": "no",
+      "ctx.intoxicated": true
+     },
+     "skip_sets": {
+      "setting": "home"
+     },
+     "skip_next": "o_main",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Да",
+       "sets": {
+        "setting": "any"
+       },
+       "next": "o_main"
+      },
+      {
+       "key": "no",
+       "label": "Нет, я дома",
+       "sets": {
+        "setting": "home"
+       },
+       "next": "o_main"
+      },
+      {
+       "key": "unsure",
+       "label": "Не уверен",
+       "sets": {
+        "setting": "home"
+       },
+       "next": "o_main"
+      }
+     ]
+    },
+    {
+     "id": "o_main",
+     "type": "offer",
+     "text": "Вот две идеи на вечер. Можно сделать сейчас или запланировать.",
+     "offer": {
+      "count": 2,
+      "diversity": "category",
+      "allow_plan": true,
+      "allow_now": true,
+      "max_declines": 4
+     },
+     "on": {
+      "accepted": "i_do",
+      "planned": "e_planned",
+      "none_fit": "e_none"
+     }
+    },
+    {
+     "id": "i_do",
+     "type": "instruction",
+     "on": {
+      "done": "f_fb",
+      "later": "e_later"
+     }
+    },
+    {
+     "id": "f_fb",
+     "type": "feedback",
+     "on": {
+      "done": "e_thanks"
+     }
+    },
+    {
+     "id": "e_thanks",
+     "type": "end",
+     "text": "Спасибо. Это помогает подбирать точнее."
+    },
+    {
+     "id": "e_later",
+     "type": "end",
+     "text": "Хорошо. Спрошу, как прошло, чуть позже."
+    },
+    {
+     "id": "e_planned",
+     "type": "end",
+     "text": "Записал: «{title}» в {time}. Напомню."
+    },
+    {
+     "id": "e_none",
+     "type": "end",
+     "text": "Ничего не попало — это тоже ответ. Вечером можно вернуться к кнопке «Провести вечер иначе»."
+    }
+   ]
+  },
+  {
+   "id": "pre_evening",
+   "revision": 1,
+   "trigger": "pre_evening",
+   "title": "Скоро вечер",
+   "entry_node": "q_pre",
+   "nodes": [
+    {
+     "id": "q_pre",
+     "type": "question",
+     "text": "Скоро вечер. Как хочешь его начать?",
+     "text_if": {
+      "has_plan": "Скоро вечер. В плане — «{plan_title}». В силе?"
+     },
+     "options": [
+      {
+       "key": "keep",
+       "label": "Да, план в силе",
+       "if": "has_plan",
+       "sets": {
+        "use_planned": true
+       },
+       "next": "i_do"
+      },
+      {
+       "key": "pick",
+       "label": "Подобрать что-нибудь",
+       "next": "q_need"
+      },
+      {
+       "key": "skip",
+       "label": "Сегодня не нужно",
+       "next": "e_skip"
+      }
+     ]
+    },
+    {
+     "id": "q_need",
+     "type": "question",
+     "text": "Чего тебе будет не хватать вечером?",
+     "skip_if": {
+      "ctx.need": "*"
+     },
+     "options": [
+      {
+       "key": "leave_me_alone",
+       "label": "Чтобы от меня отстали",
+       "sets": {
+        "need": "leave_me_alone"
+       },
+       "next": "q_setting"
+      },
+      {
+       "key": "switch_off",
+       "label": "Выключить голову",
+       "sets": {
+        "need": "switch_off"
+       },
+       "next": "q_setting"
+      },
+      {
+       "key": "novelty",
+       "label": "Чего-нибудь интересного",
+       "sets": {
+        "need": "novelty"
+       },
+       "next": "q_setting"
+      },
+      {
+       "key": "comfort",
+       "label": "Тепла и уюта",
+       "sets": {
+        "need": "comfort"
+       },
+       "next": "q_setting"
+      },
+      {
+       "key": "company",
+       "label": "Немного общения",
+       "sets": {
+        "need": "company"
+       },
+       "next": "q_setting"
+      },
+      {
+       "key": "movement",
+       "label": "Подвигаться",
+       "sets": {
+        "need": "movement"
+       },
+       "next": "q_setting"
+      },
+      {
+       "key": "rest",
+       "label": "Не знаю, всё достало",
+       "sets": {
+        "need": "rest",
+        "energy": 1
+       },
+       "next": "q_setting"
+      }
+     ],
+     "skip_next": "q_setting"
+    },
+    {
+     "id": "q_setting",
+     "type": "question",
+     "text": "Получится выйти из дома?",
+     "skip_if": {
+      "profile.can_leave_home_evening": "no",
+      "ctx.intoxicated": true
+     },
+     "skip_sets": {
+      "setting": "home"
+     },
+     "skip_next": "o_main",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Да",
+       "sets": {
+        "setting": "any"
+       },
+       "next": "o_main"
+      },
+      {
+       "key": "no",
+       "label": "Нет, я дома",
+       "sets": {
+        "setting": "home"
+       },
+       "next": "o_main"
+      },
+      {
+       "key": "unsure",
+       "label": "Не уверен",
+       "sets": {
+        "setting": "home"
+       },
+       "next": "o_main"
+      }
+     ]
+    },
+    {
+     "id": "o_main",
+     "type": "offer",
+     "text": "Две идеи на начало вечера.",
+     "offer": {
+      "count": 2,
+      "diversity": "category",
+      "allow_plan": true,
+      "allow_now": true,
+      "max_declines": 4
+     },
+     "on": {
+      "accepted": "i_do",
+      "planned": "e_planned",
+      "none_fit": "e_none"
+     }
+    },
+    {
+     "id": "i_do",
+     "type": "instruction",
+     "on": {
+      "done": "f_fb",
+      "later": "e_later"
+     }
+    },
+    {
+     "id": "f_fb",
+     "type": "feedback",
+     "on": {
+      "done": "e_thanks"
+     }
+    },
+    {
+     "id": "e_thanks",
+     "type": "end",
+     "text": "Спасибо. Это помогает подбирать точнее."
+    },
+    {
+     "id": "e_later",
+     "type": "end",
+     "text": "Хорошо. Спрошу, как прошло, чуть позже."
+    },
+    {
+     "id": "e_planned",
+     "type": "end",
+     "text": "Записал: «{title}» в {time}."
+    },
+    {
+     "id": "e_none",
+     "type": "end",
+     "text": "Понял. Если вечером станет тяжело — кнопка «Провести вечер иначе» на главном экране."
+    },
+    {
+     "id": "e_skip",
+     "type": "end",
+     "text": "Хорошо. Хорошего вечера."
+    }
+   ]
+  },
+  {
+   "id": "craving_button",
+   "revision": 1,
+   "trigger": "craving_button",
+   "title": "Вечер иначе",
+   "entry_node": "q_drank",
+   "nodes": [
+    {
+     "id": "q_drank",
+     "type": "question",
+     "text": "Сегодня уже пил?",
+     "skip_if": {
+      "ctx.intoxicated": "*"
+     },
+     "skip_next": "q_need",
+     "options": [
+      {
+       "key": "no",
+       "label": "Нет",
+       "sets": {
+        "intoxicated": false
+       },
+       "next": "q_need"
+      },
+      {
+       "key": "yes",
+       "label": "Да, немного",
+       "sets": {
+        "intoxicated": true
+       },
+       "next": "q_need"
+      }
+     ]
+    },
+    {
+     "id": "q_need",
+     "type": "question",
+     "text": "Чего сейчас больше хочется?",
+     "skip_if": {
+      "ctx.need": "*"
+     },
+     "options": [
+      {
+       "key": "leave_me_alone",
+       "label": "Чтобы от меня отстали",
+       "sets": {
+        "need": "leave_me_alone"
+       },
+       "next": "q_energy"
+      },
+      {
+       "key": "switch_off",
+       "label": "Выключить голову",
+       "sets": {
+        "need": "switch_off"
+       },
+       "next": "q_energy"
+      },
+      {
+       "key": "novelty",
+       "label": "Чего-нибудь интересного",
+       "sets": {
+        "need": "novelty"
+       },
+       "next": "q_energy"
+      },
+      {
+       "key": "comfort",
+       "label": "Тепла и уюта",
+       "sets": {
+        "need": "comfort"
+       },
+       "next": "q_energy"
+      },
+      {
+       "key": "company",
+       "label": "Немного общения",
+       "sets": {
+        "need": "company"
+       },
+       "next": "q_energy"
+      },
+      {
+       "key": "movement",
+       "label": "Подвигаться",
+       "sets": {
+        "need": "movement"
+       },
+       "next": "q_energy"
+      },
+      {
+       "key": "rest",
+       "label": "Не знаю, всё достало",
+       "sets": {
+        "need": "rest",
+        "energy": 1
+       },
+       "next": "q_energy"
+      }
+     ],
+     "skip_next": "q_energy"
+    },
+    {
+     "id": "q_energy",
+     "type": "question",
+     "text": "Сколько сил будет на что-то новое?",
+     "skip_if": {
+      "ctx.energy": "*"
+     },
+     "options": [
+      {
+       "key": "low",
+       "label": "Только совсем простое",
+       "sets": {
+        "energy": 1,
+        "time": 10
+       },
+       "next": "q_setting"
+      },
+      {
+       "key": "mid",
+       "label": "Минут на 15–20 хватит",
+       "sets": {
+        "energy": 2,
+        "time": 20
+       },
+       "next": "q_setting"
+      },
+      {
+       "key": "high",
+       "label": "Можно выбраться или чем-то заняться",
+       "sets": {
+        "energy": 3,
+        "time": 60
+       },
+       "next": "q_setting"
+      }
+     ],
+     "skip_next": "q_setting"
+    },
+    {
+     "id": "q_setting",
+     "type": "question",
+     "text": "Получится выйти из дома?",
+     "skip_if": {
+      "profile.can_leave_home_evening": "no",
+      "ctx.intoxicated": true
+     },
+     "skip_sets": {
+      "setting": "home"
+     },
+     "skip_next": "o_main",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Да",
+       "sets": {
+        "setting": "any"
+       },
+       "next": "o_main"
+      },
+      {
+       "key": "no",
+       "label": "Нет, я дома",
+       "sets": {
+        "setting": "home"
+       },
+       "next": "o_main"
+      },
+      {
+       "key": "unsure",
+       "label": "Не уверен",
+       "sets": {
+        "setting": "home"
+       },
+       "next": "o_main"
+      }
+     ]
+    },
+    {
+     "id": "o_main",
+     "type": "offer",
+     "text": "Не будем придумывать тебе ещё одно полезное дело. Вот два варианта.",
+     "offer": {
+      "count": 2,
+      "diversity": "category",
+      "allow_plan": false,
+      "allow_now": true,
+      "max_declines": 3
+     },
+     "on": {
+      "accepted": "i_do",
+      "none_fit": "q_still"
+     }
+    },
+    {
+     "id": "q_still",
+     "type": "question",
+     "text": "Похоже, сейчас ничего не цепляет. Что дальше?",
+     "options": [
+      {
+       "key": "more",
+       "label": "Покажи ещё пару",
+       "next": "o_more"
+      },
+      {
+       "key": "drink",
+       "label": "Всё равно выпью",
+       "next": "flow:still_drink"
+      },
+      {
+       "key": "wait",
+       "label": "Просто подожду волну с таймером",
+       "next": "e_timer"
+      }
+     ]
+    },
+    {
+     "id": "o_more",
+     "type": "offer",
+     "text": "Ещё два варианта — совсем простых.",
+     "offer": {
+      "count": 2,
+      "diversity": "category",
+      "allow_plan": false,
+      "allow_now": true,
+      "max_declines": 2,
+      "max_effort": 1
+     },
+     "on": {
+      "accepted": "i_do",
+      "none_fit": "q_still2"
+     }
+    },
+    {
+     "id": "q_still2",
+     "type": "question",
+     "text": "Не попал. Оставим предложения на сегодня?",
+     "options": [
+      {
+       "key": "drink",
+       "label": "Всё равно выпью",
+       "next": "flow:still_drink"
+      },
+      {
+       "key": "wait",
+       "label": "Подожду волну с таймером",
+       "next": "e_timer"
+      },
+      {
+       "key": "stop",
+       "label": "Да, хватит",
+       "next": "e_stop"
+      }
+     ]
+    },
+    {
+     "id": "i_do",
+     "type": "instruction",
+     "on": {
+      "done": "f_fb",
+      "later": "e_later"
+     }
+    },
+    {
+     "id": "f_fb",
+     "type": "feedback",
+     "on": {
+      "done": "e_thanks"
+     }
+    },
+    {
+     "id": "e_thanks",
+     "type": "end",
+     "text": "Спасибо. Это помогает подбирать точнее."
+    },
+    {
+     "id": "e_later",
+     "type": "end",
+     "text": "Хорошо. Спрошу, как прошло, чуть позже."
+    },
+    {
+     "id": "e_timer",
+     "type": "end",
+     "text": "Волна тяги поднимается и спадает. Десять минут ничего не решай.",
+     "action": "timer"
+    },
+    {
+     "id": "e_stop",
+     "type": "end",
+     "text": "Хорошо. Завтра можно вернуться к этому без оценок."
+    }
+   ]
+  },
+  {
+   "id": "still_drink",
+   "revision": 1,
+   "trigger": "still_drink",
+   "title": "Хотя бы одно изменение",
+   "entry_node": "q_intro",
+   "nodes": [
+    {
+     "id": "q_intro",
+     "type": "question",
+     "text": "Понял. Уговаривать не буду и экзамен на силу воли не устраиваю. Давай изменим хотя бы одну вещь — чтобы вечер не прошёл совсем на автомате.",
+     "options": [
+      {
+       "key": "ok",
+       "label": "Давай",
+       "sets": {
+        "setting": "home"
+       },
+       "next": "o_shift"
+      },
+      {
+       "key": "no",
+       "label": "Нет, ничего не хочу",
+       "next": "e_ok"
+      }
+     ]
+    },
+    {
+     "id": "o_shift",
+     "type": "offer",
+     "text": "Одно небольшое изменение на выбор.",
+     "offer": {
+      "count": 2,
+      "category": "alcohol_shift",
+      "allow_plan": false,
+      "allow_now": true,
+      "max_declines": 3
+     },
+     "on": {
+      "accepted": "i_do",
+      "none_fit": "e_ok"
+     }
+    },
+    {
+     "id": "i_do",
+     "type": "instruction",
+     "on": {
+      "done": "e_later",
+      "later": "e_later"
+     },
+     "done_label": "Попробую",
+     "schedule_followup": true
+    },
+    {
+     "id": "e_later",
+     "type": "end",
+     "text": "Хорошо. Позже спрошу, отличался ли вечер. Утром — без оценок и обнуления серий."
+    },
+    {
+     "id": "e_ok",
+     "type": "end",
+     "text": "Хорошо. Если захочешь — завтра утром вернёмся к этому без оценок."
+    }
+   ]
+  }
+ ]
+}
