@@ -9,8 +9,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with: { distribution: temurin, java-version: 21 }
       - name: Restore signing key
         env: { KS: '${{ secrets.TREZVO_KEYSTORE_B64 }}' }
@@ -23,7 +23,10 @@ jobs:
           ./gradlew assembleRelease --no-daemon
           V=$(grep -oP "versionName '\K[^']+" app/build.gradle)
           cp app/build/outputs/apk/release/app-release.apk trezvy-vecher-$V.apk
-          $ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)/apksigner verify --print-certs trezvy-vecher-$V.apk | head -2
+          CERT=$($ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)/apksigner verify --print-certs trezvy-vecher-$V.apk)
+          echo "$CERT" | head -2
+          if echo "$CERT" | grep -q "CN=Android Debug"; then echo "::error::APK подписан debug-ключом — проверь секреты TREZVO_KEYSTORE_B64 / TREZVO_KS_PASS"; exit 1; fi
+          T=${GITHUB_REF_NAME#v}; if [ "$GITHUB_REF_TYPE" = tag ] && [ "$T" != "$V" ]; then echo "::error::Тег $GITHUB_REF_NAME не совпадает с versionName $V"; exit 1; fi
       - name: Publish release
         env: { GH_TOKEN: '${{ github.token }}' }
         run: |

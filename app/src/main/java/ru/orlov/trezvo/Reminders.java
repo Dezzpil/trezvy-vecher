@@ -11,7 +11,7 @@ public class Reminders {
         AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
         try {
             JSONArray old = new JSONArray(DEF);
-            for (int i = 0; i < 8; i++) am.cancel(pi(c, i, ""));
+            for (int i = 0; i < 10; i++) am.cancel(pi(c, i, ""));
             JSONArray a = new JSONArray(c.getSharedPreferences("r", Context.MODE_PRIVATE).getString("times", DEF));
             for (int i = 0; i < a.length(); i++) {
                 if (!a.getJSONObject(i).optBoolean("on", true)) continue;

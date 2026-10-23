@@ -40,12 +40,14 @@ label{display:block;margin:12px 0 6px;color:var(--mut);font-size:14px}
 </style></head><body>
 <div id="app"></div>
 <nav id="nav"></nav>
+<script src="engine.js"></script>
 <script>
 // ---------- Хранилище ----------
 const HAS = typeof Android !== 'undefined';
 let D = {entries:[], reasons:[], reminders:[
  {t:'10:00',k:'morning',on:true},{t:'16:30',k:'afternoon',on:true},{t:'19:00',k:'evening',on:true},{t:'22:30',k:'night',on:true}], ritual:['Закрыть рабочие приложения','Переодеться или душ']};
 try{const s=HAS?Android.load():localStorage.getItem('d'); if(s) D=Object.assign(D,JSON.parse(s));}catch(e){}
+D=TV.migrate(D);
 function save(){const s=JSON.stringify(D); HAS?Android.save(s):localStorage.setItem('d',s);}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const dayKey=ts=>{const d=new Date(ts);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
@@ -71,11 +73,13 @@ const TIPS={
 const BASE='Вопрос не «выпить или нет», а «что я хочу сейчас с себя снять?». Сделай один шаг, который уменьшает именно эту нагрузку.';
 
 // ---------- Навигация ----------
-let stack=['home'], st={};
-function go(s,p){stack.push(s);st=p||{};render();window.scrollTo(0,0)}
-function tab(s){stack=[s];st={};render();window.scrollTo(0,0)}
-window.goBack=()=>{stopTimer();if(rec)stopRec();if(stack.length>1){stack.pop();st={};render();return 'ok'}return 'exit'};
-window.openFromNotification=k=>{if(k.startsWith('tab:'))tab(k.slice(4));else if(k==='craving')go('craving');else go('checkin',{kind:k})};
+let stack=['home'], st={}, stp=[st];
+function popScreen(){const s=stack.pop();stp.pop();st=stp[stp.length-1]||{};return s}
+function resetStack(s){stack=[s];st={};stp=[st]}
+function go(s,p){stack.push(s);st=p||{};stp.push(st);render();window.scrollTo(0,0)}
+function tab(s){resetStack(s);render();window.scrollTo(0,0)}
+window.goBack=()=>{stopTimer();if(rec)stopRec();if(stack.length>1){const s=popScreen();window.onLeave&&onLeave(s);render();return 'ok'}return 'exit'};
+window.openFromNotification=k=>{if(window.openScenarioNotification&&openScenarioNotification(k))return;if(k.startsWith('tab:'))tab(k.slice(4));else if(k==='craving')go('craving');else go('checkin',{kind:k})};
 const NAV=[['home','⌂','Сегодня'],['history','≡','Дневник'],['stats','▦','Динамика'],['settings','⚙','Настройки']];
 function render(){
  const s=stack[stack.length-1];
@@ -113,6 +117,7 @@ V.home=()=>{
  return `<header><h1>Трезвый вечер</h1><div class="sub">${fmtD(Date.now())}</div></header><div class="wrap">
  <div class="card row"><div class="stat"><b>${s.sober}</b><span>дней без пива</span></div><div class="stat"><b>${s.check}</b><span>дней с отметками</span></div><div class="stat"><b>${s.best}</b><span>лучшая серия</span></div></div>
  <button class="main" onclick="go('craving')">Чувствую тягу</button>
+ ${window.homeExtra?homeExtra():''}
  <div class="card"><h2 style="margin-top:0">Чекпоинты сегодня</h2>${cps}</div>
  <div class="card"><div class="sub">Напоминание себе</div><div style="margin-top:6px">Моя трезвость не означает, что я всегда доступен. Отдых не нужно обеспечивать алкоголем.</div></div>
  <div class="row"><button onclick="go('voice')">🎙 Просто проговорить</button><button onclick="go('ritual')">Снять плащ</button></div>
@@ -133,13 +138,14 @@ V.craving=()=>{ if(!st.init){F={id:uid(),ts:Date.now(),type:'craving',intensity:
 };
 function chips(list,field){return list.map(([k,t])=>`<button class="chip ${F[field].includes(k)?'on':''}" onclick="tog('${field}','${k}',this)">${t}</button>`).join('')}
 function tog(f,k,el){const a=F[f];const i=a.indexOf(k);i<0?a.push(k):a.splice(i,1);el.classList.toggle('on')}
-function saveCraving(){if(rec)stopRec();D.entries.push(F);save();stack.pop();go('advice',{e:F})}
+function saveCraving(){if(rec)stopRec();D.entries.push(F);save();popScreen();go('advice',{e:F})}
 
 V.advice=()=>{const e=st.e;const w=e.wants.length?e.wants:['other'];
  let tips=w.flatMap(k=>TIPS[k]||[]);
  const reasons=D.reasons.length?`<div class="card"><div class="sub">Мои причины что-то менять</div>${D.reasons.map(r=>`<div>• ${esc(r)}</div>`).join('')}</div>`:'';
  return `<header><h1>Сейчас</h1><div class="sub">${BASE}</div></header><div class="wrap">
  ${tips.map(t=>`<div class="tip">${t}</div>`).join('')}
+ ${window.adviceExtra?adviceExtra(e):''}
  ${reasons}
  <div class="card"><div class="sub">Волна тяги: 10 минут ничего не решай автоматически. Останься в перерыве, займись выбранным делом.</div>
  <div class="timer" id="tm">10:00</div><button onclick="startTimer(600)">Запустить 10 минут</button></div>
@@ -163,7 +169,7 @@ V.checkin=()=>{const k=st.kind;if(!st.init){F={id:uid(),ts:Date.now(),type:'chec
  const yn=(f,a='Да',b='Нет')=>`<div class="row"><button class="chip ${F[f]===true?'on':''}" onclick="F.${f}=true;render()">${a}</button><button class="chip ${F[f]===false?'on':''}" onclick="F.${f}=false;render()">${b}</button></div>`;
  let body='';
  if(k==='morning')body=`<label>Что сегодня потребует от меня больше всего?</label><textarea oninput="F.plan=this.value">${esc(F.plan)}</textarea>
-  <div class="tip">Подумай заранее: когда сегодня будет твой перерыв без дежурства? Договорись о нём, пока нет тяги.</div>`;
+  <div class="tip">Подумай заранее: когда сегодня будет твой перерыв без дежурства? Договорись о нём, пока нет тяги.</div>${window.morningExtra?morningExtra():''}`;
  if(k==='afternoon')body=`<label>Мысль «вечером можно будет выпить» уже появилась?</label>${yn('thought')}
   <label>Насколько я сейчас нагружен: <b id="lv">${F.load}</b>/10</label><input type="range" min="0" max="10" value="${F.load}" oninput="F.load=+this.value;lv.textContent=this.value">
   <div class="tip">Если мысль есть — это сигнал, а не приказ. Что именно ты хочешь снять с себя вечером? Запиши.</div>`;
@@ -181,8 +187,9 @@ V.checkin=()=>{const k=st.kind;if(!st.init){F={id:uid(),ts:Date.now(),type:'chec
  ${body}<label>Заметка</label><textarea oninput="F.note=this.value">${esc(F.note)}</textarea>${recBlock()}</div>
  <button class="main" onclick="saveCheck()">Сохранить</button></div>`;};
 function tg2(i,el){const r=D.ritual[i];const a=F.ritualDone;const j=a.indexOf(r);j<0?a.push(r):a.splice(j,1);el.classList.toggle('on')}
-function saveCheck(){if(rec)stopRec();D.entries.push(F);save();
- if(F.kind==='afternoon'&&F.thought){stack.pop();go('ritual');return}
+function saveCheck(){if(rec)stopRec();D.entries.push(F);if(F.kind==='night'&&window.onNightCheck)onNightCheck(F);save();
+ if(F.kind==='afternoon'&&F.thought&&window.startFlow){popScreen();startFlow('day_plan',{trigger:'afternoon_checkin',checkpoint_id:F.id});return}
+ if(F.kind==='afternoon'&&F.thought){popScreen();go('ritual');return}
  goBack()}
 
 // --- Голос ---
@@ -241,14 +248,15 @@ V.stats=()=>{const m=dayInfo();const days=[];const d=new Date();d.setDate(d.getD
  <div class="card"><div class="row"><div class="stat"><b>${cr.length}</b><span>эпизодов тяги</span></div><div class="stat"><b>${passed}</b><span>отпустило</span></div><div class="stat"><b>${drank}</b><span>выпил</span></div></div></div>
  <div class="card"><h2 style="margin-top:0">Чего я хотел</h2>${cnt('wants',WANTS)}</div>
  <div class="card"><h2 style="margin-top:0">Триггеры</h2>${cnt('triggers',TRIG)}</div>
- <div class="card"><h2 style="margin-top:0">Время тяги</h2>${Object.keys(hours).sort((a,b)=>a-b).map(h=>`${h}:00 — ${hours[h]}`).join('<br>')||'<div class="sub">нет данных</div>'}</div></div>`};
+ <div class="card"><h2 style="margin-top:0">Время тяги</h2>${Object.keys(hours).sort((a,b)=>a-b).map(h=>`${h}:00 — ${hours[h]}`).join('<br>')||'<div class="sub">нет данных</div>'}</div>${window.statsExtra?statsExtra():''}</div>`};
 
 // --- Настройки и экспорт ---
 V.settings=()=>`<header><h1>Настройки</h1></header><div class="wrap">
  <div class="card"><h2 style="margin-top:0">Выгрузка для анализа</h2><div class="sub">ZIP: journal.md (хронология для чата), data.json (все данные), audio/ (голосовые записи).</div>
  <button class="main" style="margin-top:10px" onclick="doExport()">Выгрузить дневник</button>
  <button style="margin-top:8px" onclick="Android.shareText(buildMd())">Отправить только текст</button></div>
- <div class="card"><h2 style="margin-top:0">Напоминания</h2>${D.reminders.map((r,i)=>`<div class="cp"><div>${CP[r.k]}</div><input type="time" value="${r.t}" style="flex:0 0 110px" onchange="D.reminders[${i}].t=this.value;saveRem()"><input type="checkbox" ${r.on?'checked':''} style="flex:0 0 30px;width:24px;height:24px" onchange="D.reminders[${i}].on=this.checked;saveRem()"></div>`).join('')}</div>
+ ${window.settingsExtra?settingsExtra():''}
+ <div class="card"><h2 style="margin-top:0">Напоминания</h2>${D.reminders.map((r,i)=>`<div class="cp"><div>${(window.REM||CP)[r.k]||r.k}</div><input type="time" value="${r.t}" style="flex:0 0 110px" onchange="D.reminders[${i}].t=this.value;D.reminders[${i}].custom=true;saveRem()"><input type="checkbox" ${r.on?'checked':''} style="flex:0 0 30px;width:24px;height:24px" onchange="D.reminders[${i}].on=this.checked;saveRem()"></div>`).join('')}</div>
  <div class="card"><h2 style="margin-top:0">Мои причины</h2><div class="sub">Показываются, когда отмечаешь тягу.</div>${D.reasons.map((r,i)=>`<div class="cp"><div>${esc(r)}</div><button class="small" style="flex:0" onclick="D.reasons.splice(${i},1);save();render()">✕</button></div>`).join('')}
  <div class="row" style="margin-top:8px"><input type="text" id="nr" placeholder="например: хочу помнить вечера с детьми"><button class="small" style="flex:0" onclick="if(nr.value.trim()){D.reasons.push(nr.value.trim());save();render()}">+</button></div></div>
  <div class="card"><h2 style="margin-top:0">Мой ритуал «снять плащ»</h2>${D.ritual.map((r,i)=>`<div class="cp"><div>${esc(r)}</div><button class="small" style="flex:0" onclick="D.ritual.splice(${i},1);save();render()">✕</button></div>`).join('')}
@@ -273,8 +281,9 @@ function buildMd(){const L=[];const s=streaks();
   if(e.note)L.push(`  - заметка: ${e.note.replace(/\n/g,' ')}`);
   if(e.audio?.length)L.push(`  - аудио: ${e.audio.map(a=>'audio/'+a).join(', ')}`);
  }
+ if(window.mdExtra)L.push(mdExtra());
  return L.join('\n')}
-function doExport(){if(!HAS){alert(buildMd());return}const r=Android.export(buildMd(),'trezvo_'+today()+'.zip');if(r!=='ok')alert(r)}
+function doExport(){if(!HAS){alert(buildMd());return}const r=Android.export2?Android.export2(buildMd(),exportScenariosJson(),'trezvo_'+today()+'.zip'):Android.export(buildMd(),'trezvo_'+today()+'.zip');if(r!=='ok')alert(r)}
 if(HAS)Android.setReminders(JSON.stringify(D.reminders));
 
 // ---------- Самотест (запускается только по adb-интенту selftest или ?selftest) ----------
@@ -304,8 +313,9 @@ async function selfTest(){
   tab('history');ok(document.body.innerHTML.includes('Тяга 8/10'),'history shows craving');
   tab('stats');ok(document.body.innerHTML.includes('именно опьянения'),'stats shows wants');
   const md=buildMd();ok(md.includes('Тяга 8/10')&&md.includes('пил: нет')&&md.includes('исход: отпустило'),'markdown export content');
+  if(window.selfTestScenarios)await selfTestScenarios(ok,sleep);
   if(HAS){const raw=Android.load();ok(JSON.parse(raw).entries.length===D.entries.length,'persisted to file');
-   const fn='selftest.zip';ok(Android.export(md,fn)==='ok','export zip');ok(+Android.exportPath(fn)>100,'zip size '+Android.exportPath(fn));
+   const fn='selftest.zip';ok(Android.export2(md,exportScenariosJson(),fn)==='ok','export zip');ok(+Android.exportPath(fn)>100,'zip size '+Android.exportPath(fn));
    Android.testNotify('evening');log('notification sent')}
  }catch(e){errs.push('exception '+e.message+' '+e.stack);console.error('SELFTEST EXC '+e.message)}
  D=JSON.parse(backup);save();testAudio.forEach(a=>HAS&&Android.deleteAudio(a));tab('home');
@@ -314,5 +324,5 @@ async function selfTest(){
  return errs;
 }
 if(location.search.includes('selftest'))setTimeout(selfTest,100);
-render();
-</script></body></html>
+</script>
+<script src="ui-scenarios.js"></script></body></html>

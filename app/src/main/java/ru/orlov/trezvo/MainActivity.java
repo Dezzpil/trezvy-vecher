@@ -23,6 +23,7 @@ public class MainActivity extends Activity {
     private MediaRecorder recorder;
     private MediaPlayer player;
     private String currentRec;
+    private volatile String pendingExtra;
 
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
@@ -44,6 +45,7 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) p.add(Manifest.permission.POST_NOTIFICATIONS);
         if (!p.isEmpty()) requestPermissions(p.toArray(new String[0]), 1);
         Reminders.schedule(this);
+        Proactive.rearm(this);
         handleIntent(getIntent());
     }
 
@@ -53,7 +55,7 @@ public class MainActivity extends Activity {
         if (i == null) return;
         if (i.getBooleanExtra("selftest", false)) { web.postDelayed(() -> web.evaluateJavascript("selfTest()", null), 1500); return; }
         final String screen = i.getStringExtra("screen");
-        if (screen != null) web.postDelayed(() -> web.evaluateJavascript("window.openFromNotification && openFromNotification('" + screen + "')", null), 600);
+        if (screen != null && screen.matches("[A-Za-z0-9:_\\-]+")) web.postDelayed(() -> web.evaluateJavascript("window.openFromNotification && openFromNotification('" + screen + "')", null), 600);
     }
 
     @Override public void onBackPressed() {
@@ -126,6 +128,26 @@ public class MainActivity extends Activity {
             getSharedPreferences("r", MODE_PRIVATE).edit().putString("times", json).apply();
             Reminders.schedule(MainActivity.this);
         }
+        @JavascriptInterface public String asset(String path) {
+            try (InputStream in = getAssets().open(path)) {
+                ByteArrayOutputStream o = new ByteArrayOutputStream(); byte[] buf = new byte[8192]; int n;
+                while ((n = in.read(buf)) > 0) o.write(buf, 0, n);
+                return o.toString("UTF-8");
+            } catch (Exception e) { return ""; }
+        }
+        @JavascriptInterface public void scheduleOnce(String id, double at, String title, String text, String screen, boolean proactive) {
+            Proactive.scheduleOnce(MainActivity.this, id, (long) at, title, text, screen, proactive);
+        }
+        @JavascriptInterface public void cancelOnce(String id) { Proactive.cancelOnce(MainActivity.this, id); }
+        @JavascriptInterface public void setProactive(String json) { Proactive.setSettings(MainActivity.this, json); }
+        @JavascriptInterface public boolean wipe() {
+            File[] a = audioDir().listFiles(); if (a != null) for (File f : a) f.delete();
+            Proactive.prefs(MainActivity.this).edit().remove("once").apply();
+            return dataFile().delete() || !dataFile().exists();
+        }
+        @JavascriptInterface public String export2(String markdown, String scenariosJson, String fileName) {
+            pendingExtra = scenariosJson; try { return export(markdown, fileName); } finally { pendingExtra = null; }
+        }
         @JavascriptInterface public String export(String markdown, String fileName) {
             try {
                 File dir = new File(getCacheDir(), "exports"); dir.mkdirs();
@@ -133,6 +155,7 @@ public class MainActivity extends Activity {
                 File zip = new File(dir, fileName);
                 try (ZipOutputStream z = new ZipOutputStream(new FileOutputStream(zip))) {
                     z.putNextEntry(new ZipEntry("journal.md")); z.write(markdown.getBytes(StandardCharsets.UTF_8)); z.closeEntry();
+                    if (pendingExtra != null) { z.putNextEntry(new ZipEntry("scenarios.json")); z.write(pendingExtra.getBytes(StandardCharsets.UTF_8)); z.closeEntry(); }
                     if (dataFile().exists()) { z.putNextEntry(new ZipEntry("data.json")); z.write(read(dataFile()).getBytes(StandardCharsets.UTF_8)); z.closeEntry(); }
                     File[] a = audioDir().listFiles();
                     if (a != null) for (File f : a) {
