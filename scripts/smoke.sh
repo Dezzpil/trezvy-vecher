@@ -18,7 +18,7 @@ for i in $(seq 1 40); do sleep 2; adb logcat -d -s TrezvoJS:* | grep -q SELFTEST
 sleep 2; shot 02-export-chooser 1
 adb shell input keyevent 4; sleep 2
 adb shell dumpsys notification --noredact > $OUT/notifications.txt
-for s in craving plan pre evening night tab:history tab:stats tab:settings; do
+for s in craving plan pre evening night tab:diary tab:balance tab:settings; do
   adb shell am start -n $PKG/.MainActivity --es screen "$s" >/dev/null; shot "03-${s/:/-}" 4
   adb shell input keyevent 4; sleep 1
 done

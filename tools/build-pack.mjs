@@ -1,4 +1,5 @@
-// Генератор пакета сценариев: исходник — этот файл, результат — app/src/main/assets/content/core-ru.json.
+// Генератор пакета ходов: исходник — этот файл, результат — app/src/main/assets/content/core-ru.json.
+// Формат 2: ход = карточка, привязанная к месту (где человек сейчас) и к стороне равновесия (что она восполняет).
 // В будущем пакет будет собираться бэк-офисом; формат тот же.
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -6,24 +7,26 @@ import { dirname, join } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 
 const taxonomy = {
-  needs: [
-    { key: 'leave_me_alone', label: 'Чтобы от меня отстали' },
-    { key: 'switch_off', label: 'Выключить голову' },
-    { key: 'novelty', label: 'Чего-нибудь интересного' },
-    { key: 'comfort', label: 'Тепла и уюта' },
-    { key: 'company', label: 'Немного общения' },
-    { key: 'movement', label: 'Подвигаться' },
-    { key: 'rest', label: 'Просто передохнуть' }
+  // Шесть сторон равновесия. Приложение старается, чтобы за день каждая получила хоть что-то.
+  sectors: [
+    { key: 'body', label: 'Тело', hint: 'движение, вода, еда, сон' },
+    { key: 'hands', label: 'Руки', hint: 'порядок, готовка, починить, смастерить' },
+    { key: 'mind', label: 'Голова', hint: 'читать, узнавать, играть, придумывать' },
+    { key: 'people', label: 'Люди', hint: 'близкие, знакомые, просто люди рядом' },
+    { key: 'world', label: 'Мир', hint: 'новые места, город, другая дорога' },
+    { key: 'quiet', label: 'Тишина', hint: 'пауза, дыхание, побыть одному' }
   ],
-  categories: [
-    { key: 'adventure', label: 'Маленькое приключение' },
-    { key: 'comfort', label: 'Уют' },
-    { key: 'interest', label: 'Интерес' },
-    { key: 'body', label: 'Тело' },
-    { key: 'social', label: 'Люди' },
-    { key: 'pause', label: 'Пауза' },
-    { key: 'creative', label: 'Творчество' },
-    { key: 'alcohol_shift', label: 'Хотя бы одно изменение' }
+  // Пространство: где человек сейчас. group — для фильтров «дома / вне дома».
+  places: [
+    { key: 'sofa', label: 'Диван', group: 'home' },
+    { key: 'room', label: 'Комната', group: 'home' },
+    { key: 'kitchen', label: 'Кухня', group: 'home' },
+    { key: 'bath', label: 'Ванная', group: 'home' },
+    { key: 'window', label: 'Окно, балкон', group: 'home' },
+    { key: 'stairs', label: 'Подъезд, двор', group: 'out' },
+    { key: 'road', label: 'Дорога', group: 'out' },
+    { key: 'work', label: 'Работа', group: 'out' },
+    { key: 'city', label: 'Город', group: 'out' }
   ],
   decline_reasons: [
     { key: 'too_hard', label: 'Слишком много сил' },
@@ -40,295 +43,342 @@ const taxonomy = {
     { key: 'writing', label: 'писать' }, { key: 'drawing', label: 'рисовать' },
     { key: 'voice', label: 'говорить вслух' }, { key: 'screen', label: 'экран' },
     { key: 'listening', label: 'слушать' }, { key: 'water', label: 'вода, душ' },
-    { key: 'quiet', label: 'тишина' }
+    { key: 'quiet', label: 'тишина' }, { key: 'tidy', label: 'уборка, порядок' },
+    { key: 'repair', label: 'починить, смастерить' }, { key: 'breath', label: 'дыхание' },
+    { key: 'shopping', label: 'зайти в магазин' }, { key: 'learning', label: 'узнавать новое' },
+    { key: 'neighbors', label: 'соседи' }, { key: 'plants', label: 'растения' }
   ],
   constraints: [
     { key: 'mobility', label: 'Трудно много двигаться' },
     { key: 'noise', label: 'Дома нельзя шуметь' },
     { key: 'no_camera', label: 'Не хочу пользоваться камерой' }
   ],
-  requires: ['can_leave_home', 'close_person']
+  requires: ['can_leave_home', 'close_person', 'kids', 'balcony'],
+  actions: ['open_voice', 'note', 'timer']
 };
 
-// Короткие помощники для карточек
-const STOP2 = 'Не зашло — можно бросить через пару минут.';
-const fu = (question, delay_min = 20, ask_craving = true) => ({ question, scale: 'better_same_worse', ask_craving, delay_min });
-const S = (o) => ({
-  revision: 1, status: 'active', setting: 'home', duration_min: 3, duration_max: 10,
-  effort: 1, cost: 0, social: 'solo', novelty: 1, requires: [], excludes_if: [],
-  intoxicated_ok: true, fallback_id: null, tags: [], author: 'core', notes: '',
-  followup: fu('Удалось немного переключиться?'), ...o
-});
-const V = (text, extra = {}) => ({ key: 'default', text, stop_permission: STOP2, ...extra });
-const LOW = (text, extra = {}) => ({ key: 'low_energy', text, stop_permission: 'Если не идёт — просто остановись.', ...extra });
-const SHORT = (text, extra = {}) => ({ key: 'short', text, stop_permission: STOP2, ...extra });
+const HOME = ['sofa', 'room', 'kitchen', 'bath', 'window'];
+const OUT_PLACES = ['stairs', 'road', 'city'];
+const HOME_GO = ['sofa', 'room', 'kitchen']; // откуда реально выходят в город
+const STOP = 'Не зашло — можно бросить через пару минут.';
+const FU = {
+  body: 'Тело откликнулось?', hands: 'Стало чуть больше порядка — снаружи или в голове?', mind: 'Зацепило что-нибудь?',
+  people: 'Стало теплее?', world: 'Увидел что-то новое?', quiet: 'Удалось выдохнуть?', shift: 'Вечер хоть чем-то отличался от вчерашнего?'
+};
+
+// M(id, сторона, места, название, текст, опции)
+// опции: d:[мин,макс], e:силы 1..3, n:новизна 1..3, c:деньги 0..2, soc, req[], ex[], to: место после хода,
+//        fb: замена, then[]: что естественно делать дальше, tags[], steps[], low, short, q, hours:[с,до], days, action, intox
+function M(id, sector, places, title, text, o = {}) {
+  const outdoorOnly = places.every(p => OUT_PLACES.includes(p));
+  const goesOut = o.to && OUT_PLACES.includes(o.to);
+  const e = o.e || 1;
+  const intox = o.intox != null ? o.intox : !(outdoorOnly || goesOut || (sector === 'body' && e >= 2) || o.hours);
+  const variants = [{ key: 'default', text, stop_permission: o.stop || STOP, ...(o.steps ? { steps: o.steps } : {}) }];
+  if (o.short) variants.push({ key: 'short', text: o.short, stop_permission: STOP, duration_min: o.shortMin || 2 });
+  if (o.low) variants.push({ key: 'low_energy', text: o.low, stop_permission: 'Если не идёт — просто остановись.' });
+  return {
+    id, revision: o.rev || 1, status: 'active', kind: o.kind || 'move', title, sector, category: sector, places,
+    duration_min: (o.d || [5, 15])[0], duration_max: (o.d || [5, 15])[1], effort: e, cost: o.c || 0, social: o.soc || 'solo',
+    novelty: o.n || 1, requires: o.req || [], excludes_if: o.ex || [], intoxicated_ok: intox,
+    hours: o.hours || null, days: o.days || 'any', to: o.to || null, fallback_id: o.fb || null, then: o.then || [],
+    action: o.action || null, tags: o.tags || [], variants,
+    followup: { question: o.q || FU[sector], scale: 'better_same_worse', ask_craving: sector !== 'shift', delay_min: o.delay || 25 },
+    author: 'core', notes: ''
+  };
+}
+const T = (id, places, title, text, to, o = {}) => M(id, o.sector || 'body', places, title, text, { ...o, kind: 'transition', to, d: o.d || [1, 5] });
 
 const scenarios = [
-  // ---------- adventure ----------
-  S({ id: 'three_odd_details', title: 'Три странности', category: 'adventure', needs: ['novelty', 'switch_off'], setting: 'outdoors',
-    duration_min: 10, duration_max: 20, effort: 2, novelty: 2, requires: ['can_leave_home'], intoxicated_ok: false,
-    fallback_id: 'odd_details_home', tags: ['walking', 'photo'],
-    variants: [V('Выйди на короткую прогулку и найди три странные детали. Не красивые — именно странные. Если хочется, сфотографируй.',
-      { steps: ['Выйди из дома', 'Ищи то, что выглядит нелепо или неуместно', 'Три штуки — и можно домой'] }),
-      SHORT('Дойди до угла дома и обратно. По дороге найди одну странную деталь.', { duration_min: 5 })],
-    followup: fu('Нашлось что-нибудь странное? Стало легче, так же или хуже?') }),
-  S({ id: 'odd_details_home', title: 'Дом как незнакомое место', category: 'adventure', needs: ['novelty', 'switch_off'],
-    duration_min: 3, duration_max: 7, novelty: 2, tags: ['photo'], excludes_if: [],
-    variants: [V('Найди дома три детали, которых обычно не замечаешь. Одну сними так близко, чтобы было непонятно, что это.'),
-      LOW('Не вставая, найди взглядом три вещи, которые давно не замечал.')] }),
-  S({ id: 'faces_in_things', title: 'Лица в вещах', category: 'adventure', needs: ['novelty'], setting: 'any',
-    duration_min: 5, duration_max: 15, novelty: 2, tags: ['photo'], excludes_if: ['no_camera'],
-    variants: [V('Найди три предмета, которые похожи на лица: розетка, сумка, фасад. Сфотографируй самое недовольное.')] }),
-  S({ id: 'other_route', title: 'Другой дорогой', category: 'adventure', needs: ['novelty', 'switch_off'], setting: 'outdoors',
-    duration_min: 15, duration_max: 30, effort: 2, novelty: 2, requires: ['can_leave_home'], intoxicated_ok: false,
-    excludes_if: ['mobility'], fallback_id: 'sky_watch', tags: ['walking'],
-    variants: [V('Пройди привычный маршрут другой дорогой: через двор, где не бывал, или по другой стороне улицы. Цель — не дойти, а посмотреть.')] }),
-  S({ id: 'walk_without_phone', title: 'Прогулка без телефона', category: 'adventure', needs: ['leave_me_alone', 'switch_off'], setting: 'outdoors',
-    duration_min: 10, duration_max: 25, effort: 2, requires: ['can_leave_home'], intoxicated_ok: false,
-    excludes_if: ['mobility'], fallback_id: 'blanket_silence', tags: ['walking', 'quiet'],
-    variants: [V('Выйди на 15 минут и оставь телефон дома или в беззвучном режиме в кармане. Никуда не надо, никому не надо отвечать.')] }),
-  S({ id: 'sky_watch', title: 'Кусок неба', category: 'pause', needs: ['rest', 'switch_off'], setting: 'any',
-    duration_min: 3, duration_max: 5, tags: ['quiet'],
-    variants: [V('Найди окно или балкон, откуда видно небо подальше. Три минуты просто смотри, как меняются облака или огни.')] }),
+  // ================= ПЕРЕХОДЫ: сменить точку — уже ход =================
+  T('get_off_sofa', ['sofa'], 'Встать с дивана', 'Встань и дойди до кухни. Налей воды, выпей стоя у окна. Диван никуда не денется.', 'kitchen',
+    { then: ['slow_tea', 'fridge_audit', 'cook_new_recipe'], low: 'Просто сядь. Потом встань. Потом дойди до кухни — по одному шагу.' }),
+  T('sofa_to_window', ['sofa', 'room'], 'К окну', 'Подойди к окну или выйди на балкон. Открой его, если можно. Постой, пока не досчитаешь до сорока.', 'window',
+    { sector: 'quiet', then: ['sky_watch', 'count_windows', 'street_sounds'] }),
+  T('take_out_trash', HOME, 'Вынести мусор — и задержаться', 'Собери мусор, вынеси его. Назад не спеши: постой у подъезда две минуты, посмотри по сторонам.', 'stairs',
+    { sector: 'hands', d: [3, 8], tags: ['tidy'], fb: 'trash_sort_home', then: ['yard_three_details', 'bench_five_min', 'mailbox_clean'] }),
+  T('step_to_stairs', HOME, 'На лестницу', 'Выйди на лестничную клетку. Пройди пешком два этажа вниз и обратно. Без цели, просто сменить воздух.', 'stairs',
+    { e: 2, ex: ['mobility'], tags: ['sport'], fb: 'sofa_to_window', then: ['yard_three_details', 'say_hi_neighbor'] }),
+  T('out_round_house', HOME, 'Круг вокруг дома', 'Оденься и выйди. Один круг вокруг дома — и можно обратно. Иногда этого хватает, чтобы вечер пошёл иначе.', 'stairs',
+    { e: 2, d: [8, 15], tags: ['walking'], fb: 'sofa_to_window', ex: ['mobility'], then: ['bench_five_min', 'yard_three_details'] }),
+  T('arrive_cloak', ['stairs', 'road'], 'Снять плащ у двери', 'Дома сразу: переоденься в домашнее, вымой руки и лицо, положи телефон экраном вниз. Рабочий день остаётся за дверью.', 'room',
+    { sector: 'quiet', d: [3, 7], then: ['shower_reset', 'eat_properly', 'five_min_nothing'], intox: true }),
+  T('kitchen_to_room', ['kitchen'], 'Из кухни — в комнату', 'Если сидишь на кухне по привычке — уйди в комнату, сядь там, где обычно не сидишь. Возьми с собой только воду.', 'room',
+    { sector: 'quiet', then: ['ugly_corner', 'two_pages', 'floor_stretch'] }),
+  T('bath_reset_go', ['sofa', 'room'], 'В ванную, умыться', 'Дойди до ванной, умойся прохладной водой и посмотри себе в глаза пять секунд. Как будто начинается второй день.', 'bath',
+    { sector: 'body', tags: ['water'], then: ['shower_reset', 'clean_mirror'] }),
 
-  // ---------- comfort ----------
-  S({ id: 'cocoa_new_spot', title: 'Какао в другом месте', category: 'comfort', needs: ['comfort', 'leave_me_alone'],
-    duration_min: 10, duration_max: 20, tags: ['cooking'],
-    variants: [V('Сделай какао или кофе и устройся там, где обычно не сидишь: на подоконнике, на полу, на балконе.'),
-      LOW('Налей себе что-нибудь тёплое и сядь в другом месте. Больше ничего.')],
-    followup: fu('Удалось хоть немного согреться и выдохнуть?') }),
-  S({ id: 'shower_reset', title: 'Душ-перезагрузка', category: 'comfort', needs: ['comfort', 'switch_off'],
-    duration_min: 10, duration_max: 20, tags: ['water'],
-    variants: [V('Прими душ и переоденься в чистое и удобное. Как будто день закончился и начинается другой, твой.')] }),
-  S({ id: 'blanket_silence', title: 'Плед и тишина', category: 'comfort', needs: ['leave_me_alone', 'rest'],
-    duration_min: 10, duration_max: 15, tags: ['quiet'],
-    variants: [V('Укройся пледом и 10 минут побудь в тишине. Без телефона, без задач. Можно просто лежать.')] }),
-  S({ id: 'simple_tasty', title: 'Что-то вкусное', category: 'comfort', needs: ['comfort'], duration_min: 20, duration_max: 40,
-    effort: 2, cost: 1, tags: ['cooking'],
-    variants: [V('Приготовь что-нибудь простое и вкусное: яичницу с чем-нибудь неожиданным, гренки, бутерброд «как в детстве».'),
-      LOW('Съешь что-нибудь вкусное, что уже есть дома. Сядь за стол, не на ходу.', { duration_min: 5 })] }),
-  S({ id: 'slow_tea', title: 'Медленный чай', category: 'comfort', needs: ['comfort', 'switch_off'], duration_min: 7, duration_max: 15,
-    tags: ['cooking', 'quiet'],
-    variants: [V('Завари чай очень медленно, как будто это важная церемония: чайник, чашка, ожидание. Пей, пока горячий.')] }),
-  S({ id: 'comfy_clothes', title: 'Самое удобное', category: 'comfort', needs: ['comfort', 'rest'], duration_min: 2, duration_max: 5,
-    variants: [V('Переоденься в самую удобную одежду, какая есть. Рабочий день официально снят.')] }),
-  S({ id: 'eat_properly', title: 'Нормально поесть', category: 'comfort', needs: ['comfort', 'rest'], duration_min: 10, duration_max: 30,
-    tags: ['cooking'],
-    variants: [V('Поешь нормально — горячее, за столом. На голодный и уставший организм вечер всегда кажется хуже.')] }),
+  // ================= ДИВАН =================
+  M('five_sounds', 'quiet', ['sofa', 'room', 'window', 'road', 'work', 'stairs'], 'Пять звуков', 'Закрой глаза и насчитай пять разных звуков вокруг — ближних и дальних. Запиши их, если хочется.',
+    { d: [2, 4], tags: ['quiet', 'listening'], action: 'note' }),
+  M('grounding_54321', 'quiet', [...HOME, 'road', 'work', 'stairs', 'city'], '5-4-3-2-1', 'Назови и запиши: пять вещей, которые видишь, четыре — которые можешь потрогать, три звука, два запаха, один вкус.',
+    { d: [3, 6], tags: ['quiet', 'writing'], action: 'note', steps: ['5 — вижу', '4 — могу потрогать', '3 — слышу', '2 — чую', '1 — вкус во рту'] }),
+  M('breath_4_6', 'quiet', [...HOME, 'road', 'work', 'stairs', 'city'], 'Дыхание 4–6', 'Вдох на четыре счёта, выдох на шесть. Десять раз. Длинный выдох сам опускает напряжение — ничего не надо «правильно».',
+    { d: [2, 4], tags: ['breath', 'quiet'], action: 'timer' }),
+  M('box_breath', 'quiet', [...HOME, 'road', 'work'], 'Квадрат', 'Вдох — 4, пауза — 4, выдох — 4, пауза — 4. Рисуй мысленно квадрат. Пять кругов.',
+    { d: [2, 4], tags: ['breath', 'quiet'], n: 2, action: 'timer' }),
+  M('body_scan', 'quiet', ['sofa', 'room'], 'Проверка тела', 'Ляг. Пройдись вниманием от макушки до пяток и найди три места, где ты зажат. Просто отпусти каждое на выдохе.',
+    { d: [5, 10], tags: ['quiet'] }),
+  M('lie_one_track', 'quiet', ['sofa', 'room'], 'Лёжа под один трек', 'Ляг, закрой глаза и послушай одну песню целиком. Только её.', { d: [3, 8], tags: ['music', 'listening'] }),
+  M('five_min_nothing', 'quiet', ['sofa', 'room', 'window', 'kitchen'], 'Пять минут ничьих', 'Пять минут, которыми ты никому не обязан. Не медитация и не саморазвитие. Просто время без задачи.',
+    { d: [5, 5], tags: ['quiet'], stop: 'Тут нельзя сделать неправильно.', action: 'timer' }),
+  M('blanket_silence', 'quiet', ['sofa'], 'Плед и тишина', 'Укройся пледом и десять минут побудь в тишине. Без телефона, без задач. Можно просто лежать.', { d: [10, 15], tags: ['quiet'], action: 'timer' }),
+  M('two_pages', 'mind', ['sofa', 'room', 'kitchen', 'road'], 'Две страницы', 'Открой любую книгу, которая есть под рукой. Прочитай две страницы. Найди фразу, с которой хочется поспорить.',
+    { d: [5, 30], tags: ['reading'], low: 'Открой книгу на случайной странице и прочитай один абзац. Этого достаточно.' }),
+  M('short_story', 'mind', ['sofa', 'room', 'road'], 'Один рассказ', 'Прочитай один короткий рассказ — Чехова, Зощенко, Шукшина, О. Генри. Не понравится начало — бросай и бери другой.',
+    { d: [10, 25], tags: ['reading', 'screen'], n: 2 }),
+  M('one_game_round', 'mind', ['sofa', 'room'], 'Одна партия', 'Сыграй одну партию или один уровень в игру, которая нравится. Одну — без обязательства продолжать.', { d: [10, 30], tags: ['games', 'screen'] }),
+  M('chess_puzzle', 'mind', ['sofa', 'room', 'road', 'work'], 'Задачка', 'Реши одну задачку: шахматный этюд, судоку, кроссворд. Не получилось за десять минут — посмотри ответ, это тоже знание.',
+    { d: [5, 15], tags: ['games'], n: 2 }),
+  M('wiki_rabbit', 'mind', ['sofa', 'room', 'road'], 'Кроличья нора', 'Открой случайную статью Википедии. Перейди по трём ссылкам подряд. Куда тебя занесло? Запиши, что узнал.',
+    { d: [5, 20], tags: ['reading', 'screen', 'learning'], n: 2, action: 'note' }),
+  M('one_word_language', 'mind', ['sofa', 'road', 'kitchen'], 'Одно чужое слово', 'Найди одно красивое слово на языке, которого не знаешь — грузинском, финском, японском. Узнай, как оно звучит и откуда.',
+    { d: [3, 8], tags: ['learning', 'screen'], n: 2 }),
+  M('photos_this_day', 'mind', ['sofa'], 'Этот день год назад', 'Открой фотографии за этот же день год или пять лет назад. Что тогда было? Одну фотку можно отправить тому, кто на ней.',
+    { d: [3, 10], tags: ['photo', 'screen'], then: ['send_song'] }),
+  M('list_ten_places', 'mind', ['sofa', 'room', 'road'], 'Десять мест', 'Напиши список из десяти мест, которые хочешь увидеть. Не обязательно далёких: соседний район, крыша, старая школа.',
+    { d: [5, 10], tags: ['writing'], action: 'note', then: ['plan_weekend_trip'] }),
+  M('forgotten_album', 'mind', ['sofa', 'room', 'road'], 'Забытый альбом', 'Включи альбом, который давно не слушал. Не фоном: первые три песни просто слушай.', { d: [10, 40], tags: ['music', 'listening'] }),
+  M('chosen_film', 'mind', ['sofa'], 'Фильм, который правда хочется', 'Выбери фильм, который давно хотел посмотреть, — не фоном, а по-настоящему. Свет приглушить, телефон в другую комнату.',
+    { d: [60, 150], tags: ['screen'] }),
+  M('unknown_topic', 'mind', ['sofa', 'kitchen', 'road'], 'Неизвестная тема', 'Включи лекцию или подкаст о том, о чём ничего не знаешь: история метро, грибы, как строят мосты.',
+    { d: [15, 40], tags: ['listening', 'learning'], n: 2 }),
+  M('digital_clean', 'hands', ['sofa', 'road'], 'Тридцать скриншотов', 'Удали тридцать ненужных скриншотов и фотографий. Или отпишись от пяти каналов, которые только раздражают.',
+    { d: [5, 10], tags: ['tidy', 'screen'] }),
+  M('old_message', 'people', ['sofa', 'road', 'work'], 'Висящее сообщение', 'Ответь на одно сообщение, которое давно висит без ответа. Коротко. Без извинений на три абзаца.',
+    { d: [2, 5], soc: 'with_close', tags: [] }),
+  M('send_song', 'people', ['sofa', 'room', 'road', 'work', 'kitchen'], 'Песня без отчёта', 'Отправь близкому человеку песню или смешную картинку. Не нужно рассказывать, как прошёл день.',
+    { d: [2, 5], soc: 'with_close', req: ['close_person'], tags: ['music'] }),
+  M('voice_to_friend', 'people', ['sofa', 'road', 'stairs'], 'Голосовое без повода', 'Запиши другу голосовое на минуту: что смешного видел сегодня. Ответа можно не ждать.',
+    { d: [2, 5], soc: 'with_close', req: ['close_person'], tags: ['voice'] }),
+  M('sofa_stretch', 'body', ['sofa'], 'Потянуться', 'Прямо на диване: потянись руками вверх, ногами вперёд, как после долгого сна. Покрути стопами. Пять раз.',
+    { d: [1, 3] }),
 
-  // ---------- interest ----------
-  S({ id: 'two_pages', title: 'Две страницы', category: 'interest', needs: ['novelty', 'switch_off'], duration_min: 5, duration_max: 30,
-    tags: ['reading'],
-    variants: [V('Открой любую книгу, которая есть под рукой. Прочитай две страницы. Найди фразу, с которой хочется поспорить.'),
-      LOW('Открой книгу на случайной странице и прочитай один абзац. Этого достаточно.')],
-    followup: fu('Зацепило что-нибудь в тексте?') }),
-  S({ id: 'short_story', title: 'Один рассказ', category: 'interest', needs: ['novelty', 'leave_me_alone'], duration_min: 10, duration_max: 25,
-    tags: ['reading', 'screen'], novelty: 2,
-    variants: [V('Прочитай один короткий рассказ на 10 минут — например, Чехова, Зощенко или О. Генри. Не понравится начало — бросай.')] }),
-  S({ id: 'one_game_round', title: 'Одна партия', category: 'interest', needs: ['switch_off', 'leave_me_alone'], duration_min: 10, duration_max: 30,
-    tags: ['games', 'screen'],
-    variants: [V('Сыграй одну партию или один уровень в игру, которая нравится. Одну — без обязательства продолжать.')] }),
-  S({ id: 'forgotten_album', title: 'Забытая песня', category: 'interest', needs: ['comfort', 'switch_off'], duration_min: 4, duration_max: 10,
-    tags: ['music', 'listening'],
-    variants: [V('Включи песню из альбома, который давно не слушал. На эти несколько минут больше ничего не делай. Можно лежать.')] }),
-  S({ id: 'chosen_film', title: 'Фильм, который правда хочется', category: 'interest', needs: ['comfort', 'leave_me_alone'],
-    duration_min: 40, duration_max: 150, tags: ['screen'],
-    variants: [V('Выбери фильм или серию, которые давно хотел посмотреть, — не фоном, а по-настоящему. Устройся удобно.')] }),
-  S({ id: 'unknown_topic', title: 'Неизвестная тема', category: 'interest', needs: ['novelty'], duration_min: 15, duration_max: 40,
-    tags: ['listening', 'screen'], novelty: 2,
-    variants: [V('Включи лекцию или выпуск подкаста о том, о чём ты ничего не знаешь: история, космос, грибы, архитектура.')] }),
-  S({ id: 'wiki_rabbit', title: 'Кроличья нора', category: 'interest', needs: ['novelty', 'switch_off'], duration_min: 5, duration_max: 20,
-    tags: ['reading', 'screen'], novelty: 2,
-    variants: [V('Открой случайную статью Википедии («Случайная статья» в меню). Перейди по трём ссылкам подряд. Куда тебя занесло?')] }),
+  // ================= КОМНАТА =================
+  M('ugly_corner', 'hands', ['room', 'kitchen', 'window'], 'Угол, который бесит', 'Посмотри вокруг. Найди одно место, которое давно не устраивает: стул с одеждой, полку, угол с коробками. Займись только им. Не думай больше ни о чём.',
+    { d: [10, 30], e: 2, tags: ['tidy'], steps: ['Выбери одно место', 'Убери с него всё на пол или на кровать', 'Верни только нужное', 'Остальное — в пакет: выбросить или отдать'],
+      low: 'Выбери один предмет, который лежит не на месте, и верни его на место. Одного достаточно.', then: ['bag_to_give', 'take_out_trash'] }),
+  M('one_shelf', 'hands', ['room', 'kitchen'], 'Одна полка', 'Разбери одну полку: всё снять, протереть, поставить обратно только то, что нужно. Остальное — в пакет.',
+    { d: [10, 20], tags: ['tidy'] }),
+  M('desk_drawer', 'hands', ['room', 'work'], 'Ящик стола', 'Вытряхни один ящик. Батарейки к батарейкам, провода к проводам, мусор — в мусор.', { d: [5, 15], tags: ['tidy'] }),
+  M('wardrobe_five', 'hands', ['room'], 'Пять вещей из шкафа', 'Найди в шкафу пять вещей, которые не носил больше года. Сложи в пакет — отдать или выбросить.',
+    { d: [10, 20], tags: ['tidy'], then: ['bag_to_give'] }),
+  M('bag_to_give', 'hands', ['room', 'stairs'], 'Пакет на отдачу', 'Собери пакет вещей, которые кому-то пригодятся, и поставь его у двери. Завтра по дороге отнесёшь в пункт приёма или контейнер.',
+    { d: [5, 15], tags: ['tidy'] }),
+  M('fix_small', 'hands', ['room', 'kitchen', 'bath'], 'Мелкая починка', 'Почини одну мелочь, которая давно раздражает: шатающаяся ручка, выпавший шуруп, перегоревшая лампочка, пуговица.',
+    { d: [10, 30], e: 2, tags: ['repair'], n: 1 }),
+  M('wires', 'hands', ['room', 'work'], 'Провода', 'Разбери клубок проводов: смотай, подпиши, лишнее убери в коробку. Странно приятное занятие.', { d: [10, 20], tags: ['tidy', 'repair'] }),
+  M('dust_hidden', 'hands', ['room'], 'Там, где не видно', 'Протри пыль в одном месте, куда давно не заглядывал: верх шкафа, за телевизором, под кроватью.', { d: [5, 15], tags: ['tidy'] }),
+  M('vacuum_one_song', 'hands', ['room'], 'Пылесос под три песни', 'Включи три громкие песни и пропылесось одну комнату, пока они играют. Музыка кончилась — уборка тоже.',
+    { d: [10, 15], e: 2, ex: ['noise'], tags: ['tidy', 'music'] }),
+  M('rearrange', 'hands', ['room'], 'Переставить', 'Переставь в комнате одну вещь: кресло к окну, лампу на другой стол, картину на другую стену. Посиди с новым видом.',
+    { d: [5, 20], e: 2, n: 2, tags: ['tidy'] }),
+  M('plants_care', 'hands', ['room', 'window', 'kitchen'], 'Растения', 'Полей растения, оборви сухие листья, протри пыль с листьев. Если растений нет — посади косточку от лимона или авокадо.',
+    { d: [5, 15], tags: ['plants'] }),
+  M('iron_meditation', 'hands', ['room'], 'Гладить медленно', 'Погладь несколько рубашек или футболок. Медленно, ровно, с паром. Монотонное дело хорошо выключает голову.',
+    { d: [10, 25], tags: ['tidy'] }),
+  M('warmup_5', 'body', ['room', 'work'], 'Разминка на 5 минут', 'Пять минут разминки: шея, плечи, наклоны, вращения. Не тренировка — просто напомнить телу, что оно есть.',
+    { d: [5, 10], e: 2, ex: ['mobility'], tags: ['sport'] }),
+  M('ten_reps', 'body', ['room', 'kitchen'], '10 и 10', 'Десять приседаний и десять отжиманий — можно от стола или стены. Без рекордов. Просто встряхнуть себя.',
+    { d: [2, 5], e: 2, ex: ['mobility'], tags: ['sport'] }),
+  M('plank_three', 'body', ['room'], 'Планка 3×30', 'Три подхода планки по тридцать секунд с паузой в минуту. В паузе — дыши и смотри в окно.',
+    { d: [4, 6], e: 2, ex: ['mobility'], tags: ['sport'], action: 'timer' }),
+  M('dance_one_song', 'body', ['room', 'kitchen'], 'Танец без свидетелей', 'Одна песня — танцуешь, как никто не видит. Потому что никто не видит.', { d: [3, 5], e: 2, n: 2, ex: ['noise'], tags: ['music', 'sport'] }),
+  M('floor_stretch', 'body', ['room'], 'Растяжка лёжа', 'Ляг на пол на коврик или плед. Потянись во все стороны, как кот. Подтяни колени к груди, полежи.', { d: [5, 15] }),
+  M('day_map', 'mind', ['room', 'kitchen'], 'Карта дня', 'Нарисуй сегодняшний день как карту: «болото совещаний», «перевал обеда», «гора посуды». Кривые линии — нормально.',
+    { d: [5, 10], n: 2, tags: ['drawing'] }),
+  M('draw_object', 'hands', ['room', 'kitchen', 'window'], 'Рисунок с натуры', 'Возьми карандаш и нарисуй любой предмет перед тобой: чашку, ботинок, кран. Десять минут. Не красиво — внимательно.',
+    { d: [10, 15], n: 2, tags: ['drawing'] }),
+  M('museum_caption', 'mind', ['room', 'kitchen', 'work'], 'Музей сегодняшнего дня', 'Выбери предмет сегодняшнего дня и придумай ему музейную подпись. «Кружка. Пережила три совещания».',
+    { d: [2, 5], n: 2, tags: ['writing'], action: 'note' }),
+  M('album_cover', 'mind', ['room', 'kitchen', 'stairs', 'city'], 'Обложка альбома', 'Сфотографируй любой предмет так, будто это обложка альбома. Название придумай максимально нелепое.',
+    { d: [3, 10], n: 2, tags: ['photo'], ex: ['no_camera'] }),
+  M('odd_details_home', 'world', HOME, 'Дом как незнакомое место', 'Найди дома три детали, которых обычно не замечаешь. Одну сними так близко, чтобы было непонятно, что это.',
+    { d: [3, 7], n: 2, tags: ['photo'], low: 'Не вставая, найди взглядом три вещи, которые давно не замечал.' }),
+  M('playlist_week', 'mind', ['room', 'sofa'], 'Плейлист на неделю', 'Собери плейлист из десяти песен на завтрашнюю дорогу. Половина — то, что давно не слушал.', { d: [10, 20], tags: ['music'] }),
+  M('books_wishlist', 'mind', ['room', 'sofa'], 'Список книг', 'Запиши пять книг, которые хочешь прочитать. Одну отметь — с неё начнёшь. Можно спросить в библиотеке.',
+    { d: [5, 10], tags: ['reading', 'writing'], action: 'note', then: ['library_visit'] }),
+  M('five_lines', 'mind', ['room', 'kitchen', 'sofa'], 'Пять строк', 'Напиши пять строк о сегодняшнем дне. Не что делал, а что заметил. Одну смешную обязательно.',
+    { d: [3, 7], tags: ['writing'], action: 'note' }),
+  M('voice_absurd', 'mind', ['room', 'sofa', 'road'], 'Абсурд дня', 'Расскажи голосом самую абсурдную часть сегодняшнего дня. Разбирать и исправлять ничего не будем.',
+    { d: [2, 5], tags: ['voice'], action: 'open_voice' }),
+  M('dark_room', 'quiet', ['room'], 'Тёмная комната', 'Выключи свет, сядь на пол или в кресло. Пять минут в темноте и тишине. Глаза можно не закрывать.',
+    { d: [5, 7], tags: ['quiet'], action: 'timer' }),
+  M('kids_play', 'people', ['room', 'kitchen'], 'Их игра', 'Пятнадцать минут поиграй с детьми в то, что выберут они. Правила — их, ты только участник.',
+    { d: [15, 20], e: 2, soc: 'with_close', req: ['kids'], tags: ['games'] }),
+  M('read_to_kids', 'people', ['room', 'sofa'], 'Почитать вслух', 'Почитай детям вслух одну главу. Разными голосами, если хватит смелости.',
+    { d: [10, 20], soc: 'with_close', req: ['kids'], tags: ['reading', 'voice'] }),
+  M('board_game_home', 'people', ['room', 'kitchen'], 'Настолка дома', 'Предложи домашним одну партию в настольную игру или карты. Короткую — на двадцать минут.',
+    { d: [15, 40], soc: 'with_close', tags: ['games'] }),
 
-  // ---------- body ----------
-  S({ id: 'warmup_5', title: 'Разминка на 5 минут', category: 'body', needs: ['movement', 'switch_off'], duration_min: 5, duration_max: 10,
-    effort: 2, intoxicated_ok: false, excludes_if: ['mobility'], tags: ['sport'],
-    variants: [V('Пять минут разминки: шея, плечи, наклоны, вращения. Не тренировка — просто напомнить телу, что оно есть.')] }),
-  S({ id: 'ten_reps', title: '10 и 10', category: 'body', needs: ['movement', 'switch_off'], duration_min: 2, duration_max: 5,
-    effort: 2, intoxicated_ok: false, excludes_if: ['mobility'], tags: ['sport'],
-    variants: [V('10 приседаний и 10 отжиманий — можно от стола или стены. Без рекордов. Просто встряхнуть себя.')] }),
-  S({ id: 'window_air', title: 'Открытое окно', category: 'body', needs: ['switch_off', 'rest'], duration_min: 2, duration_max: 5,
-    tags: ['quiet'],
-    variants: [V('Открой окно и три минуты постой у него. Подыши, послушай улицу.')] }),
-  S({ id: 'floor_stretch', title: 'Растяжка лёжа', category: 'body', needs: ['rest', 'movement'], duration_min: 5, duration_max: 15,
-    variants: [V('Ляг на пол на коврик или плед. Потянись во все стороны, как кот. Подтяни колени к груди, полежи.')] }),
-  S({ id: 'cold_water_face', title: 'Холодная вода', category: 'body', needs: ['switch_off'], duration_min: 1, duration_max: 3,
-    tags: ['water'],
-    variants: [V('Умой лицо холодной водой. Три раза. Тело быстрее выключает мысли, чем уговоры.')] }),
+  // ================= КУХНЯ =================
+  M('cook_new_recipe', 'hands', ['kitchen'], 'Новый рецепт', 'Приготовь одно блюдо, которое никогда не делал: шакшука, гречка по-купечески, драники. Найди рецепт и иди по шагам.',
+    { d: [25, 50], e: 2, n: 2, c: 1, tags: ['cooking'], then: ['call_no_reason'] }),
+  M('toasts_childhood', 'hands', ['kitchen'], 'Гренки как в детстве', 'Сделай гренки: хлеб, яйцо, молоко, сковородка. Сладкие или с сыром — как помнишь.', { d: [10, 20], tags: ['cooking'] }),
+  M('soup_tomorrow', 'hands', ['kitchen'], 'Суп на завтра', 'Свари простой суп на завтра. Нарезка овощей — лучшая медитация для тех, кто не любит медитировать.',
+    { d: [30, 60], e: 2, c: 1, tags: ['cooking'] }),
+  M('pancakes', 'hands', ['kitchen'], 'Оладьи', 'Пожарь оладьи на кефире. Запах выпечки меняет вечер быстрее, чем кажется.', { d: [20, 35], e: 2, c: 1, tags: ['cooking'] }),
+  M('fridge_audit', 'hands', ['kitchen'], 'Ревизия холодильника', 'Открой холодильник, выброси всё просроченное, протри одну полку. Составь список на завтра.',
+    { d: [10, 15], tags: ['tidy', 'cooking'] }),
+  M('kitchen_drawer', 'hands', ['kitchen'], 'Ящик с ерундой', 'Разбери кухонный ящик, куда складывается всё подряд: резинки, пакеты, крышки без банок.', { d: [5, 15], tags: ['tidy'] }),
+  M('dishes_slow', 'hands', ['kitchen'], 'Посуда руками', 'Помой посуду медленно, горячей водой. Чувствуй тепло на руках. Одна тарелка — один выдох.', { d: [5, 15], tags: ['tidy', 'water'] }),
+  M('lunch_prep', 'hands', ['kitchen'], 'Обед на завтра', 'Собери себе обед на завтра в контейнер. Завтрашний ты будет благодарен.', { d: [10, 20], tags: ['cooking'] }),
+  M('mors_lemonade', 'hands', ['kitchen'], 'Свой напиток', 'Сделай свой напиток: морс из замороженных ягод, лимонад с мятой, имбирный чай с мёдом. Налей в красивый стакан.',
+    { d: [10, 20], c: 1, tags: ['cooking'], then: ['five_min_nothing'] }),
+  M('salad_beautiful', 'hands', ['kitchen'], 'Красивая нарезка', 'Нарежь овощи или фрукты очень красиво, как для гостей. Гость — ты.', { d: [10, 15], tags: ['cooking'] }),
+  M('spices_blind', 'mind', ['kitchen'], 'Специи вслепую', 'Закрой глаза и попробуй угадать по запаху три специи с полки. Потом проверь.', { d: [3, 5], n: 2, tags: ['cooking'] }),
+  M('new_food', 'world', ['kitchen', 'road', 'city'], 'Незнакомый продукт', 'Попробуй продукт, который никогда не ел: необычный фрукт, сыр, крупу. Купи по дороге или найди дома.',
+    { d: [5, 15], n: 2, c: 1, tags: ['shopping', 'cooking'] }),
+  M('eat_properly', 'body', ['kitchen'], 'Нормально поесть', 'Поешь нормально — горячее, за столом. На голодный и уставший организм вечер всегда кажется хуже.',
+    { d: [10, 30], tags: ['cooking'], low: 'Съешь что-нибудь, что уже есть дома. Сядь за стол, не на ходу.' }),
+  M('water_fruit', 'body', ['kitchen', 'work'], 'Вода и фрукт', 'Большой стакан воды и яблоко или банан. Иногда «хочу выпить» — это просто «хочу пить и есть».', { d: [2, 4], tags: ['water'] }),
+  M('slow_tea', 'quiet', ['kitchen'], 'Медленный чай', 'Завари чай очень медленно, как будто это церемония: чайник, чашка, ожидание. Пей, пока горячий.', { d: [7, 15], tags: ['cooking', 'quiet'] }),
+  M('cocoa_new_spot', 'quiet', ['kitchen', 'room'], 'Какао в другом месте', 'Сделай какао и устройся там, где обычно не сидишь: на подоконнике, на полу, на балконе.',
+    { d: [10, 20], tags: ['cooking'], low: 'Налей себе что-нибудь тёплое и сядь в другом месте. Больше ничего.' }),
+  M('cook_together', 'people', ['kitchen'], 'Готовить вдвоём', 'Позови кого-то из домашних готовить ужин вместе. Один режет, другой мешает, оба болтают.',
+    { d: [20, 40], soc: 'with_close', tags: ['cooking'] }),
+  M('invite_for_tea', 'people', ['kitchen', 'room', 'work'], 'Позвать на чай', 'Напиши соседу или другу, который живёт рядом: «Заходи на чай, есть пирог». Пирог можно купить.',
+    { d: [5, 60], soc: 'with_close', n: 2, c: 1, tags: [] }),
 
-  // ---------- social ----------
-  S({ id: 'send_song', title: 'Песня без отчёта', category: 'social', needs: ['company'], setting: 'any', duration_min: 2, duration_max: 5,
-    social: 'with_close', requires: ['close_person'], tags: ['music'],
-    variants: [V('Отправь близкому человеку песню или смешную картинку. Не нужно рассказывать, как прошёл день.')] }),
-  S({ id: 'call_no_reason', title: 'Звонок без повода', category: 'social', needs: ['company'], setting: 'any', duration_min: 5, duration_max: 15,
-    effort: 2, social: 'with_close', requires: ['close_person'], tags: ['calls'],
-    variants: [V('Позвони кому-нибудь без повода на пять минут. Можно сказать прямо: «Просто захотелось поговорить».')] }),
-  S({ id: 'among_people', title: 'Рядом с людьми', category: 'social', needs: ['company', 'switch_off'], setting: 'outdoors',
-    duration_min: 15, duration_max: 30, effort: 2, social: 'among_people', requires: ['can_leave_home'], intoxicated_ok: false,
-    fallback_id: 'send_song', tags: ['walking'],
-    variants: [V('Выйди туда, где есть люди, но с ними не нужно разговаривать: сквер, двор, улица. Просто побудь рядом.')] }),
+  // ================= ВАННАЯ =================
+  M('shower_reset', 'body', ['bath'], 'Душ-перезагрузка', 'Прими душ и переоденься в чистое и удобное. Как будто день закончился и начинается другой, твой.', { d: [10, 20], tags: ['water'] }),
+  M('contrast_shower', 'body', ['bath'], 'Контрастный душ', 'Тёплая вода минуту, прохладная — пятнадцать секунд. Три раза. Закончить на прохладной.',
+    { d: [5, 8], e: 2, n: 2, tags: ['water'], intox: false }),
+  M('cold_water_face', 'body', ['bath', 'kitchen', 'work'], 'Холодная вода', 'Умой лицо холодной водой. Три раза. Тело быстрее выключает мысли, чем уговоры.', { d: [1, 3], tags: ['water'] }),
+  M('foot_bath', 'quiet', ['bath', 'sofa'], 'Ноги в тепле', 'Налей в таз горячей воды, добавь соли. Десять минут посиди с ногами в тепле. Можно с книжкой.', { d: [10, 15], tags: ['water'] }),
+  M('slow_shave', 'body', ['bath'], 'Неспешный уход', 'Побрейся или сделай уход за лицом медленно, тщательно, с горячим полотенцем. Как в барбершопе, только бесплатно.',
+    { d: [10, 20], tags: ['water'] }),
+  M('clean_mirror', 'hands', ['bath'], 'Зеркало до блеска', 'Отмой зеркало и раковину до блеска. Пять минут — и ванная выглядит как новая.', { d: [5, 10], tags: ['tidy'] }),
 
-  // ---------- pause ----------
-  S({ id: 'five_min_nothing', title: 'Пять минут ничьих', category: 'pause', needs: ['leave_me_alone', 'rest'], duration_min: 5, duration_max: 5,
-    tags: ['quiet'],
-    variants: [V('Пять минут, которыми ты никому не обязан. Не медитация и не саморазвитие. Просто время без задачи.', { stop_permission: 'Тут нельзя сделать неправильно.' })] }),
-  S({ id: 'lie_one_track', title: 'Лёжа под один трек', category: 'pause', needs: ['rest', 'switch_off'], duration_min: 3, duration_max: 8,
-    tags: ['music', 'listening'],
-    variants: [V('Ляг, закрой глаза и послушай одну песню целиком. Только её.')] }),
-  S({ id: 'five_sounds', title: 'Пять звуков', category: 'pause', needs: ['switch_off', 'rest'], duration_min: 2, duration_max: 3,
-    tags: ['quiet'],
-    variants: [V('Закрой глаза и насчитай пять разных звуков вокруг — ближних и дальних.')] }),
+  // ================= ОКНО, БАЛКОН =================
+  M('sky_watch', 'quiet', ['window', 'stairs', 'road'], 'Кусок неба', 'Найди место, откуда видно небо подальше. Три минуты смотри, как меняются облака или огни.', { d: [3, 5], tags: ['quiet'] }),
+  M('window_air', 'body', ['window', 'room'], 'Открытое окно', 'Открой окно и три минуты постой у него. Подыши, послушай улицу.', { d: [2, 5], tags: ['quiet'] }),
+  M('count_windows', 'world', ['window'], 'Чужие окна', 'Посчитай, сколько окон горит в доме напротив. Придумай одну историю про любое из них.', { d: [3, 5], n: 2 }),
+  M('street_sounds', 'quiet', ['window', 'stairs'], 'Улица на слух', 'Три минуты слушай улицу с закрытыми глазами. Запиши три звука, которые раньше не замечал.', { d: [3, 5], tags: ['listening'], action: 'note' }),
+  M('window_series', 'world', ['window'], 'Вид из окна', 'Сфотографируй вид из окна. Делай это каждый вечер — через месяц будет серия о том, как меняется мир за стеклом.',
+    { d: [1, 3], n: 2, tags: ['photo'], ex: ['no_camera'] }),
+  M('balcony_corner', 'hands', ['window'], 'Угол балкона', 'Разбери один угол балкона: банки, коробки, «потом пригодится». Пригодилось? Нет — в мусор.',
+    { d: [10, 25], e: 2, req: ['balcony'], tags: ['tidy'] }),
 
-  // ---------- creative ----------
-  S({ id: 'album_cover', title: 'Обложка альбома', category: 'creative', needs: ['novelty'], setting: 'any', duration_min: 3, duration_max: 10,
-    novelty: 2, tags: ['photo'], excludes_if: ['no_camera'],
-    variants: [V('Сфотографируй любой предмет так, будто это обложка альбома. Название придумай максимально нелепое.')] }),
-  S({ id: 'museum_caption', title: 'Музей сегодняшнего дня', category: 'creative', needs: ['novelty', 'switch_off'], duration_min: 2, duration_max: 5,
-    novelty: 2, tags: ['writing'],
-    variants: [V('Выбери один предмет сегодняшнего дня и придумай ему музейную подпись. Можно язвительную. «Кружка. Пережила три совещания».')] }),
-  S({ id: 'voice_absurd', title: 'Абсурд дня', category: 'creative', needs: ['switch_off', 'leave_me_alone'], duration_min: 2, duration_max: 5,
-    tags: ['voice'], action: 'open_voice',
-    variants: [V('Расскажи голосом самую абсурдную часть сегодняшнего дня. Разбирать и исправлять ничего не будем.')] }),
-  S({ id: 'day_map', title: 'Карта дня', category: 'creative', needs: ['novelty', 'switch_off'], duration_min: 5, duration_max: 10,
-    novelty: 2, tags: ['drawing'],
-    variants: [V('Нарисуй сегодняшний день как карту: «болото совещаний», «перевал обеда», «гора посуды». Пять минут, кривые линии — нормально.')] }),
-  S({ id: 'day_menu', title: 'Меню дня', category: 'creative', needs: ['novelty'], duration_min: 3, duration_max: 7, novelty: 2, tags: ['writing'],
-    variants: [V('Составь меню ресторана, где подают твой сегодняшний день. «Салат из недосыпа», «котлета дедлайна». Три блюда.')] }),
-  S({ id: 'useless_thing', title: 'Бесполезное дело', category: 'creative', needs: ['novelty', 'leave_me_alone'], duration_min: 5, duration_max: 20,
-    novelty: 3, tags: [],
-    variants: [V('Сделай одну маленькую вещь, от которой совершенно никакой пользы: построй башню из книг, переставь предметы на полке по цвету.')] }),
+  // ================= ПОДЪЕЗД, ДВОР =================
+  M('yard_three_details', 'world', ['stairs'], 'Двор как незнакомый', 'Найди во дворе три детали, которых раньше не видел: надпись, странное дерево, окно с необычной занавеской.',
+    { d: [5, 10], n: 2, fb: 'odd_details_home', tags: ['walking'] }),
+  M('bench_five_min', 'quiet', ['stairs', 'city'], 'Пять минут на лавке', 'Сядь на лавку во дворе на пять минут. Ничего не делай. Смотри, кто ходит, что светит.', { d: [5, 7], fb: 'sky_watch', tags: ['quiet'] }),
+  M('say_hi_neighbor', 'people', ['stairs'], 'Сосед', 'Поздоровайся с соседом, которого видишь, но не знаешь по имени. Спроси имя. Этого хватит.',
+    { d: [1, 5], n: 2, soc: 'among_people', fb: 'send_song', tags: ['neighbors'] }),
+  M('mailbox_clean', 'hands', ['stairs'], 'Почтовый ящик', 'Открой почтовый ящик, выброси рекламу, разбери то, что важно. Мелочь — но давно висела.', { d: [2, 5], fb: 'kitchen_drawer', tags: ['tidy'] }),
+  M('stairs_up', 'body', ['stairs'], 'Пешком наверх', 'Не жди лифт — поднимись пешком. Если этажей мало, спустись и поднимись ещё раз.',
+    { d: [2, 6], e: 2, ex: ['mobility'], fb: 'ten_reps', tags: ['sport'] }),
+  M('yard_walk_20', 'body', ['stairs'], 'Двадцать минут вокруг', 'Пройдись по кварталу двадцать минут. Не ускоряйся, не считай шаги. Просто иди, пока не остынет голова.',
+    { d: [15, 25], e: 2, ex: ['mobility'], fb: 'floor_stretch', tags: ['walking'] }),
+  M('trash_sort_home', 'hands', ['kitchen', 'stairs'], 'Раздельный мусор', 'Рассортируй мусор: пластик, бумага, стекло. Отнеси в контейнеры, если они есть рядом. Маленькое дело, которое видно.',
+    { d: [5, 10], tags: ['tidy'] }),
 
-  // ---------- alcohol_shift (ветка «всё равно выпью») ----------
-  S({ id: 'shift_no_background', title: 'Без фонового видео', category: 'alcohol_shift', needs: ['switch_off', 'comfort'],
-    duration_min: 1, duration_max: 120, tags: [],
-    variants: [V('Сегодня без привычного фонового видео. Выбери одну вещь — альбом, фильм или игру, — которую действительно хочется.')],
-    followup: fu('Вечер хоть чем-то отличается от вчерашнего?', 40, false) }),
-  S({ id: 'shift_conscious_music', title: 'Музыка по выбору', category: 'alcohol_shift', needs: ['comfort'], duration_min: 1, duration_max: 60,
-    tags: ['music'],
-    variants: [V('Выбери музыку сознательно: один альбом целиком, который правда хочется услышать, а не случайный поток.')],
-    followup: fu('Вечер хоть чем-то отличается от вчерашнего?', 40, false) }),
-  S({ id: 'shift_other_spot', title: 'Другое место', category: 'alcohol_shift', needs: ['novelty'], duration_min: 1, duration_max: 60,
-    variants: [V('Сядь в другом месте квартиры — не там, где обычно. Просто посмотри, отличается ли вечер.')],
-    followup: fu('Вечер хоть чем-то отличается от вчерашнего?', 40, false) }),
-  S({ id: 'shift_decide_amount', title: 'Решить заранее', category: 'alcohol_shift', needs: ['rest'], duration_min: 1, duration_max: 5,
-    variants: [V('Реши заранее, сколько будет сегодня, и достань только это. Остальное пусть останется в холодильнике.')],
-    followup: fu('Получилось остаться в том количестве, что решил?', 60, false) }),
-  S({ id: 'shift_water_between', title: 'Вода между', category: 'alcohol_shift', needs: ['rest'], duration_min: 1, duration_max: 5,
-    tags: ['water'],
-    variants: [V('Поставь рядом большой стакан воды. Между банками — стакан воды.')],
-    followup: fu('Получилось чередовать?', 60, false) }),
-  S({ id: 'shift_eat_first', title: 'Сначала поесть', category: 'alcohol_shift', needs: ['comfort'], duration_min: 10, duration_max: 30,
-    tags: ['cooking'],
-    variants: [V('Сначала нормально поешь — горячее, за столом. Всё остальное потом.')],
-    followup: fu('Получилось сначала поесть?', 40, false) })
+  // ================= ДОРОГА =================
+  M('stop_earlier', 'world', ['road'], 'На остановку раньше', 'Выйди на одну остановку раньше и дойди пешком. Посмотри на дома выше первого этажа — там самое интересное.',
+    { d: [10, 20], e: 2, fb: 'transport_window', tags: ['walking'], then: ['arrive_cloak'] }),
+  M('other_route', 'world', ['road'], 'Другой дорогой', 'Пройди привычный путь другой дорогой: через двор, где не бывал, или по другой стороне улицы. Цель — не дойти, а посмотреть.',
+    { d: [10, 25], e: 2, n: 2, ex: ['mobility'], fb: 'transport_window', tags: ['walking'] }),
+  M('avoid_shop', 'world', ['road'], 'Мимо магазина', 'Если по дороге магазин, где обычно берёшь пиво, — сверни на соседнюю улицу. Всего на один квартал. Это и есть ход.',
+    { d: [3, 10], fb: 'transport_window', tags: ['walking'], then: ['bakery_stop', 'arrive_cloak'] }),
+  M('three_odd_details', 'world', ['road', 'stairs', 'city'], 'Три странности', 'По дороге найди три странные детали. Не красивые — именно странные. Если хочется, сфотографируй.',
+    { d: [5, 20], n: 2, fb: 'odd_details_home', tags: ['walking', 'photo'], short: 'До следующего угла найди одну странную деталь.' }),
+  M('faces_in_things', 'world', ['road', 'city', 'stairs', 'room'], 'Лица в вещах', 'Найди три предмета, похожих на лица: розетка, сумка, фасад. Сфотографируй самое недовольное.',
+    { d: [5, 15], n: 2, tags: ['photo'], ex: ['no_camera'] }),
+  M('transport_window', 'quiet', ['road'], 'Окно, не экран', 'В транспорте убери телефон и смотри в окно. Всю дорогу или хотя бы пять остановок.', { d: [5, 30], tags: ['quiet'] }),
+  M('no_headphones', 'quiet', ['road'], 'Без наушников', 'Сними наушники и послушай город. Найди самый тихий звук, какой получится.', { d: [5, 15], tags: ['listening', 'quiet'] }),
+  M('album_full_road', 'mind', ['road'], 'Альбом от начала до конца', 'Поставь один альбом с первой песни и слушай по порядку, без перемоток. Так, как его задумали.',
+    { d: [20, 50], tags: ['music', 'listening'] }),
+  M('audiobook_chapter', 'mind', ['road'], 'Глава в дорогу', 'Включи одну главу аудиокниги. Детектив, история, что угодно — только не про работу.', { d: [15, 40], tags: ['listening', 'reading'] }),
+  M('call_on_the_way', 'people', ['road'], 'Позвонить на ходу', 'Пока идёшь — позвони маме, брату, старому другу. Пять минут. Дорога пройдёт незаметно.',
+    { d: [5, 15], soc: 'with_close', req: ['close_person'], tags: ['calls'] }),
+  M('walk_extra_15', 'body', ['road'], 'Лишние пятнадцать минут', 'Добавь к дороге пятнадцать минут пешком. Не спортивная ходьба — просто чуть дольше идти.', { d: [15, 20], e: 2, ex: ['mobility'], fb: 'transport_window', tags: ['walking'] }),
+  M('bakery_stop', 'world', ['road', 'city'], 'Пекарня по пути', 'Зайди в пекарню или кофейню, где никогда не был. Возьми одну булку и чай с собой.',
+    { d: [5, 15], c: 1, n: 2, fb: 'slow_tea', tags: ['shopping'], hours: [7, 22] }),
+  M('bookshop_browse', 'mind', ['road', 'city'], 'Книжный по пути', 'Загляни в книжный. Полистай три книги из раздела, куда никогда не ходишь. Покупать не обязательно.',
+    { d: [10, 30], n: 2, fb: 'two_pages', tags: ['reading', 'shopping'], hours: [10, 21] }),
+  M('hardware_store', 'hands', ['road', 'city'], 'Хозяйственный', 'Зайди в хозяйственный и купи то, чего не хватает для той мелкой починки: шуруп, лампочку, клей. Вечером — починить.',
+    { d: [10, 20], c: 1, fb: 'fix_small', tags: ['repair', 'shopping'], hours: [9, 21], then: ['fix_small'] }),
+  M('market_dinner', 'hands', ['road', 'city'], 'Рынок на ужин', 'Зайди на рынок или в овощной и выбери что-то для ужина, чего обычно не берёшь. Спроси продавца, как это готовить.',
+    { d: [10, 25], c: 1, n: 2, soc: 'among_people', fb: 'fridge_audit', tags: ['shopping', 'cooking'], hours: [8, 20], then: ['cook_new_recipe'] }),
+  M('give_bag_road', 'people', ['road'], 'Отнести пакет', 'Отнеси пакет с вещами в пункт приёма или контейнер для одежды. Пять минут — и в доме свободнее.',
+    { d: [5, 15], fb: 'bag_to_give', tags: ['tidy'] }),
+
+  // ================= РАБОТА =================
+  M('close_day', 'quiet', ['work'], 'Закрыть день', 'Перед уходом запиши три дела на завтра и закрой рабочие вкладки. Работа знает, где её ждать.',
+    { d: [3, 5], tags: ['writing'], action: 'note', then: ['plan_evening_one'] }),
+  M('plan_evening_one', 'mind', ['work', 'road'], 'Одно дело на вечер', 'Реши прямо сейчас одно дело на вечер — не «отдохнуть», а конкретное: приготовить, починить, сходить, позвонить.',
+    { d: [2, 5], tags: [], action: 'note' }),
+  M('find_event', 'world', ['work', 'road', 'sofa'], 'Событие в городе', 'Найди в городе событие на сегодня или ближайшие дни: лекция, концерт, выставка, открытый микрофон. Отметь одно.',
+    { d: [5, 15], n: 2, tags: ['learning', 'screen'], then: ['lecture_go', 'museum_one_hall'] }),
+  M('invite_colleague', 'people', ['work'], 'Позвать кого-то', 'Предложи коллеге или другу пойти куда-нибудь вечером: кино, баня, настолки, бильярд. Не бар.',
+    { d: [2, 5], n: 2, soc: 'with_close', tags: [], then: ['cinema_alone', 'board_games_club'] }),
+  M('desk_clean_3', 'hands', ['work'], 'Стол за три минуты', 'Три минуты: убери со стола всё лишнее, выброси бумажки, протри поверхность. Утром начнёшь с чистого.', { d: [3, 5], tags: ['tidy'] }),
+  M('stairs_work', 'body', ['work'], 'Этажи', 'Пройдись по лестнице на два этажа вверх и вниз. Или просто обойди здание.', { d: [3, 7], e: 2, ex: ['mobility'], fb: 'neck_work', tags: ['sport'] }),
+  M('neck_work', 'body', ['work'], 'Шея и плечи', 'Медленно покрути головой, подними и опусти плечи десять раз, сведи лопатки. Сидя тоже можно.', { d: [2, 4] }),
+  M('lunch_outside', 'world', ['work'], 'Обед в новом месте', 'Пообедай сегодня в месте, где никогда не был. Или хотя бы на скамейке, а не за рабочим столом.',
+    { d: [20, 45], c: 1, n: 2, tags: ['shopping'], hours: [11, 16] }),
+  M('chat_colleague', 'people', ['work'], 'Не по работе', 'Поговори с коллегой пять минут не о работе. Спроси, что он сейчас читает или смотрит.', { d: [3, 10], soc: 'among_people', tags: [] }),
+
+  // ================= ГОРОД =================
+  M('library_visit', 'world', ['city', 'road', 'work', ...HOME_GO], 'Библиотека', 'Сходи в ближайшую библиотеку. Поговори с библиотекарем: расскажи, что любишь, и попроси посоветовать книжку. Возьми её домой.',
+    { d: [30, 60], n: 2, soc: 'among_people', to: 'city', fb: 'books_wishlist', tags: ['reading'], hours: [11, 20],
+      steps: ['Найди ближайшую библиотеку — обычно она есть в каждом районе', 'Запишись: нужен паспорт, это бесплатно', 'Скажи библиотекарю, что последнее понравилось', 'Возьми то, что посоветуют, даже если неожиданно'], then: ['two_pages'] }),
+  M('reading_room', 'quiet', ['city', 'road'], 'Читальный зал', 'Посиди час в читальном зале. Там тихо, тепло и никто ничего от тебя не хочет.',
+    { d: [30, 90], fb: 'blanket_silence', tags: ['reading', 'quiet'], hours: [11, 20] }),
+  M('museum_one_hall', 'world', ['city', 'road', 'work'], 'Один зал музея', 'Сходи в музей и посмотри только один зал. Найди одну вещь, около которой хочется постоять подольше.',
+    { d: [30, 60], c: 1, n: 2, to: 'city', fb: 'wiki_rabbit', tags: ['learning'], hours: [11, 19] }),
+  M('cinema_alone', 'mind', ['city', 'road', 'work'], 'Кино одному', 'Сходи в кино на ближайший сеанс одному. Выбери фильм, на который никого не уговорить.',
+    { d: [90, 150], c: 2, n: 2, soc: 'among_people', to: 'city', fb: 'chosen_film', tags: ['screen'], hours: [10, 23] }),
+  M('pool_swim', 'body', ['city', 'road', 'work'], 'Бассейн', 'Сходи в бассейн на разовое посещение. Сорок минут в воде — и голова тихая до утра.',
+    { d: [45, 90], e: 2, c: 2, to: 'city', fb: 'shower_reset', ex: ['mobility'], tags: ['sport', 'water'], hours: [7, 22] }),
+  M('banya', 'body', ['city', 'road', 'work'], 'Баня', 'Сходи в общественную баню или сауну. Пар, холодная вода, чай. Классический мужской вечер — без пива он лучше.',
+    { d: [90, 150], e: 2, c: 2, soc: 'among_people', to: 'city', fb: 'contrast_shower', tags: ['water'], hours: [10, 22] }),
+  M('climbing_try', 'body', ['city', 'road', 'work'], 'Скалодром', 'Запишись на пробное занятие на скалодроме или в батутном центре. Странно, страшно и очень выключает голову.',
+    { d: [60, 90], e: 3, c: 2, n: 3, to: 'city', fb: 'ten_reps', ex: ['mobility'], tags: ['sport'], hours: [10, 22] }),
+  M('gym_short', 'body', ['city', 'road', 'work'], 'Короткая тренировка', 'Зайди в зал на сорок минут: разминка, три упражнения, растяжка. Без рекордов — вечер вместо банки.',
+    { d: [40, 60], e: 3, c: 1, to: 'city', fb: 'warmup_5', ex: ['mobility'], tags: ['sport'], hours: [7, 23] }),
+  M('run_park', 'body', ['city', 'stairs'], 'Пробежка в парке', 'Двадцать минут лёгкого бега или быстрой ходьбы в ближайшем парке. Темп — чтобы можно было говорить.',
+    { d: [20, 30], e: 3, to: 'city', fb: 'floor_stretch', ex: ['mobility'], tags: ['sport', 'walking'] }),
+  M('lecture_go', 'mind', ['city', 'road', 'work'], 'Лекция', 'Сходи на открытую лекцию: в библиотеке, музее, просветительском центре. Сядь в первые ряды и задай один вопрос.',
+    { d: [60, 120], n: 3, soc: 'among_people', to: 'city', fb: 'unknown_topic', tags: ['learning', 'listening'], hours: [12, 22] }),
+  M('board_games_club', 'people', ['city', 'road', 'work'], 'Настолки в клубе', 'Найди клуб настольных игр или антикафе и приди на открытую игру. Там рады новичкам и не пьют за игрой.',
+    { d: [90, 180], e: 2, c: 1, n: 3, soc: 'among_people', to: 'city', fb: 'board_game_home', tags: ['games'], hours: [12, 23] }),
+  M('workshop_hands', 'hands', ['city', 'road', 'work'], 'Мастер-класс', 'Запишись на мастер-класс руками: гончарка, столярка, ковка, кожа. Раз — и у тебя есть вещь, сделанная самим.',
+    { d: [90, 180], e: 2, c: 2, n: 3, soc: 'among_people', to: 'city', fb: 'fix_small', tags: ['repair'], hours: [11, 21] }),
+  M('sunset_embankment', 'world', ['city', 'road'], 'Закат у воды', 'Дойди до набережной, пруда или реки к закату. Постой, пока не стемнеет.', { d: [20, 40], to: 'city', fb: 'sky_watch', tags: ['walking'] }),
+  M('new_district', 'world', ['city', 'road'], 'Незнакомая станция', 'Доедь до станции, на которой никогда не выходил, и пройди там один квартал. Потом домой.',
+    { d: [40, 80], e: 2, n: 3, c: 1, to: 'city', fb: 'wiki_rabbit', tags: ['walking'] }),
+  M('cafe_book', 'mind', ['city', 'road'], 'Кофейня с книгой', 'Сядь в кофейне с книгой на сорок минут. Чай или кофе, телефон в рюкзак.', { d: [30, 60], c: 1, soc: 'among_people', to: 'city', fb: 'two_pages', tags: ['reading'], hours: [8, 22] }),
+  M('shelter_volunteer', 'people', ['city', 'road', 'work'], 'Приют для животных', 'Узнай, как прийти волонтёром в приют: выгулять собак, помочь с уборкой. Многие приюты ждут людей по вечерам и в выходные.',
+    { d: [10, 120], e: 2, n: 3, to: 'city', fb: 'find_event', tags: [], hours: [10, 19] }),
+  M('barber', 'body', ['city', 'road', 'work'], 'Подстричься', 'Зайди подстричься. Полчаса, когда о тебе заботятся и не нужно ничего решать.', { d: [30, 45], c: 2, soc: 'among_people', to: 'city', fb: 'slow_shave', tags: [], hours: [10, 21] }),
+  M('open_mic_listen', 'world', ['city', 'road', 'work'], 'Послушать живьём', 'Найди открытый микрофон, джем, концерт в маленьком зале. Слушать живых людей — совсем не то, что в наушниках.',
+    { d: [60, 150], c: 1, n: 3, soc: 'among_people', to: 'city', fb: 'forgotten_album', tags: ['music', 'listening'], hours: [18, 23] }),
+  M('among_people', 'people', ['city', 'stairs', 'road'], 'Рядом с людьми', 'Побудь там, где есть люди, но с ними не нужно разговаривать: сквер, торговая улица, вокзал. Просто посиди рядом.',
+    { d: [15, 30], soc: 'among_people', fb: 'send_song', tags: ['walking'] }),
+  M('plan_weekend_trip', 'world', ['sofa', 'work', 'road', 'room'], 'Вылазка на выходные', 'Выбери на выходные одну вылазку: электричка в соседний город, лес, монастырь, музей-усадьба. Посмотри расписание.',
+    { d: [10, 20], n: 2, tags: ['learning', 'screen'] }),
+  M('call_no_reason', 'people', ['sofa', 'room', 'kitchen', 'window', 'road', 'stairs'], 'Звонок без повода', 'Позвони кому-нибудь без повода на пять минут. Можно сказать прямо: «Просто захотелось поговорить».',
+    { d: [5, 15], e: 2, soc: 'with_close', req: ['close_person'], tags: ['calls'] }),
+
+  // ================= «ВСЁ РАВНО ВЫПЬЮ»: одно изменение автоматизма =================
+  M('shift_no_background', 'shift', HOME, 'Без фонового видео', 'Сегодня без привычного фонового видео. Выбери одну вещь — альбом, фильм или игру, — которую действительно хочется.', { d: [1, 120] }),
+  M('shift_conscious_music', 'shift', HOME, 'Музыка по выбору', 'Выбери музыку сознательно: один альбом целиком, который правда хочется услышать, а не случайный поток.', { d: [1, 60], tags: ['music'] }),
+  M('shift_other_spot', 'shift', HOME, 'Другое место', 'Сядь в другом месте квартиры — не там, где обычно. Просто посмотри, отличается ли вечер.', { d: [1, 60] }),
+  M('shift_decide_amount', 'shift', HOME, 'Решить заранее', 'Реши заранее, сколько будет сегодня, и достань только это. Остальное пусть останется в холодильнике.',
+    { d: [1, 5], q: 'Получилось остаться в том количестве, что решил?' }),
+  M('shift_water_between', 'shift', HOME, 'Вода между', 'Поставь рядом большой стакан воды. Между банками — стакан воды.', { d: [1, 5], tags: ['water'], q: 'Получилось чередовать?' }),
+  M('shift_eat_first', 'shift', ['kitchen', 'room', 'sofa'], 'Сначала поесть', 'Сначала нормально поешь — горячее, за столом. Всё остальное потом.', { d: [10, 30], tags: ['cooking'], q: 'Получилось сначала поесть?' }),
+  M('shift_glass_slow', 'shift', HOME, 'Из стакана', 'Перелей в стакан, а не из банки. Ставь стакан на стол после каждого глотка.', { d: [1, 5] }),
+  M('shift_start_later', 'shift', HOME, 'На полчаса позже', 'Начни на полчаса позже, чем обычно. Эти полчаса — душ, ужин или одна песня.', { d: [30, 30], action: 'timer' }),
+  M('shift_first_nonalc', 'shift', HOME, 'Первая — без', 'Первую выпей безалкогольную или морс. Дальше — как решишь.', { d: [1, 10] }),
+  M('shift_no_stock', 'shift', ['road', 'city', 'stairs'], 'Без запаса', 'Если покупаешь — возьми только на сегодня, без запаса на завтра.', { d: [1, 5], intox: true })
 ];
 
-// ---------- Сценарии разговора ----------
-const Q_NEED = (next) => ({ id: 'q_need', type: 'question', text: 'Чего тебе будет не хватать вечером?', skip_if: { 'ctx.need': '*' },
-  options: [
-    { key: 'leave_me_alone', label: 'Чтобы от меня отстали', sets: { need: 'leave_me_alone' }, next },
-    { key: 'switch_off', label: 'Выключить голову', sets: { need: 'switch_off' }, next },
-    { key: 'novelty', label: 'Чего-нибудь интересного', sets: { need: 'novelty' }, next },
-    { key: 'comfort', label: 'Тепла и уюта', sets: { need: 'comfort' }, next },
-    { key: 'company', label: 'Немного общения', sets: { need: 'company' }, next },
-    { key: 'movement', label: 'Подвигаться', sets: { need: 'movement' }, next },
-    { key: 'rest', label: 'Не знаю, всё достало', sets: { need: 'rest', energy: 1 }, next }
-  ], skip_next: next });
-const Q_ENERGY = (next) => ({ id: 'q_energy', type: 'question', text: 'Сколько сил будет на что-то новое?', skip_if: { 'ctx.energy': '*' },
-  options: [
-    { key: 'low', label: 'Только совсем простое', sets: { energy: 1, time: 10 }, next },
-    { key: 'mid', label: 'Минут на 15–20 хватит', sets: { energy: 2, time: 20 }, next },
-    { key: 'high', label: 'Можно выбраться или чем-то заняться', sets: { energy: 3, time: 60 }, next }
-  ], skip_next: next });
-const Q_SETTING = (next) => ({ id: 'q_setting', type: 'question', text: 'Получится выйти из дома?',
-  skip_if: { 'profile.can_leave_home_evening': 'no', 'ctx.intoxicated': true }, skip_sets: { setting: 'home' }, skip_next: next,
-  options: [
-    { key: 'yes', label: 'Да', sets: { setting: 'any' }, next },
-    { key: 'no', label: 'Нет, я дома', sets: { setting: 'home' }, next },
-    { key: 'unsure', label: 'Не уверен', sets: { setting: 'home' }, next }
-  ] });
-const I_DO = { id: 'i_do', type: 'instruction', on: { done: 'f_fb', later: 'e_later' } };
-const F_FB = { id: 'f_fb', type: 'feedback', on: { done: 'e_thanks' } };
-const E_COMMON = [
-  { id: 'e_thanks', type: 'end', text: 'Спасибо. Это помогает подбирать точнее.' },
-  { id: 'e_later', type: 'end', text: 'Хорошо. Спрошу, как прошло, чуть позже.' }
-];
-
-const flows = [
-  { id: 'day_plan', revision: 1, trigger: 'day_plan', title: 'План вечера', entry_node: 'q_need', nodes: [
-    { ...Q_NEED('q_energy'), text: 'Как хочется провести сегодняшний вечер? Чего тебе будет не хватать?' },
-    Q_ENERGY('q_setting'), Q_SETTING('o_main'),
-    { id: 'o_main', type: 'offer', text: 'Вот две идеи на вечер. Можно сделать сейчас или запланировать.',
-      offer: { count: 2, diversity: 'category', allow_plan: true, allow_now: true, max_declines: 4 },
-      on: { accepted: 'i_do', planned: 'e_planned', none_fit: 'e_none' } },
-    I_DO, F_FB, ...E_COMMON,
-    { id: 'e_planned', type: 'end', text: 'Записал: «{title}» в {time}. Напомню.' },
-    { id: 'e_none', type: 'end', text: 'Ничего не попало — это тоже ответ. Вечером можно вернуться к кнопке «Провести вечер иначе».' }
-  ] },
-  { id: 'pre_evening', revision: 1, trigger: 'pre_evening', title: 'Скоро вечер', entry_node: 'q_pre', nodes: [
-    { id: 'q_pre', type: 'question', text: 'Скоро вечер. Как хочешь его начать?', text_if: { has_plan: 'Скоро вечер. В плане — «{plan_title}». В силе?' },
-      options: [
-        { key: 'keep', label: 'Да, план в силе', if: 'has_plan', sets: { use_planned: true }, next: 'i_do' },
-        { key: 'pick', label: 'Подобрать что-нибудь', next: 'q_need' },
-        { key: 'skip', label: 'Сегодня не нужно', next: 'e_skip' }
-      ] },
-    Q_NEED('q_setting'), Q_SETTING('o_main'),
-    { id: 'o_main', type: 'offer', text: 'Две идеи на начало вечера.',
-      offer: { count: 2, diversity: 'category', allow_plan: true, allow_now: true, max_declines: 4 },
-      on: { accepted: 'i_do', planned: 'e_planned', none_fit: 'e_none' } },
-    I_DO, F_FB, ...E_COMMON,
-    { id: 'e_planned', type: 'end', text: 'Записал: «{title}» в {time}.' },
-    { id: 'e_none', type: 'end', text: 'Понял. Если вечером станет тяжело — кнопка «Провести вечер иначе» на главном экране.' },
-    { id: 'e_skip', type: 'end', text: 'Хорошо. Хорошего вечера.' }
-  ] },
-  { id: 'craving_button', revision: 1, trigger: 'craving_button', title: 'Вечер иначе', entry_node: 'q_drank', nodes: [
-    { id: 'q_drank', type: 'question', text: 'Сегодня уже пил?', skip_if: { 'ctx.intoxicated': '*' }, skip_next: 'q_need',
-      options: [
-        { key: 'no', label: 'Нет', sets: { intoxicated: false }, next: 'q_need' },
-        { key: 'yes', label: 'Да, немного', sets: { intoxicated: true }, next: 'q_need' }
-      ] },
-    { ...Q_NEED('q_energy'), text: 'Чего сейчас больше хочется?' },
-    Q_ENERGY('q_setting'), Q_SETTING('o_main'),
-    { id: 'o_main', type: 'offer', text: 'Не будем придумывать тебе ещё одно полезное дело. Вот два варианта.',
-      offer: { count: 2, diversity: 'category', allow_plan: false, allow_now: true, max_declines: 3 },
-      on: { accepted: 'i_do', none_fit: 'q_still' } },
-    { id: 'q_still', type: 'question', text: 'Похоже, сейчас ничего не цепляет. Что дальше?',
-      options: [
-        { key: 'more', label: 'Покажи ещё пару', next: 'o_more' },
-        { key: 'drink', label: 'Всё равно выпью', next: 'flow:still_drink' },
-        { key: 'wait', label: 'Просто подожду волну с таймером', next: 'e_timer' }
-      ] },
-    { id: 'o_more', type: 'offer', text: 'Ещё два варианта — совсем простых.',
-      offer: { count: 2, diversity: 'category', allow_plan: false, allow_now: true, max_declines: 2, max_effort: 1 },
-      on: { accepted: 'i_do', none_fit: 'q_still2' } },
-    { id: 'q_still2', type: 'question', text: 'Не попал. Оставим предложения на сегодня?',
-      options: [
-        { key: 'drink', label: 'Всё равно выпью', next: 'flow:still_drink' },
-        { key: 'wait', label: 'Подожду волну с таймером', next: 'e_timer' },
-        { key: 'stop', label: 'Да, хватит', next: 'e_stop' }
-      ] },
-    I_DO, F_FB, ...E_COMMON,
-    { id: 'e_timer', type: 'end', text: 'Волна тяги поднимается и спадает. Десять минут ничего не решай.', action: 'timer' },
-    { id: 'e_stop', type: 'end', text: 'Хорошо. Завтра можно вернуться к этому без оценок.' }
-  ] },
-  { id: 'still_drink', revision: 1, trigger: 'still_drink', title: 'Хотя бы одно изменение', entry_node: 'q_intro', nodes: [
-    { id: 'q_intro', type: 'question',
-      text: 'Понял. Уговаривать не буду и экзамен на силу воли не устраиваю. Давай изменим хотя бы одну вещь — чтобы вечер не прошёл совсем на автомате.',
-      options: [
-        { key: 'ok', label: 'Давай', sets: { setting: 'home' }, next: 'o_shift' },
-        { key: 'no', label: 'Нет, ничего не хочу', next: 'e_ok' }
-      ] },
-    { id: 'o_shift', type: 'offer', text: 'Одно небольшое изменение на выбор.',
-      offer: { count: 2, category: 'alcohol_shift', allow_plan: false, allow_now: true, max_declines: 3 },
-      on: { accepted: 'i_do', none_fit: 'e_ok' } },
-    { id: 'i_do', type: 'instruction', on: { done: 'e_later', later: 'e_later' }, done_label: 'Попробую', schedule_followup: true },
-    { id: 'e_later', type: 'end', text: 'Хорошо. Позже спрошу, отличался ли вечер. Утром — без оценок и обнуления серий.' },
-    { id: 'e_ok', type: 'end', text: 'Хорошо. Если захочешь — завтра утром вернёмся к этому без оценок.' }
-  ] }
-];
-
-const pack = { pack_id: 'core-ru', version: '1.0.0', format: 1, min_app_version: 3, published_at: '2026-10-23T00:00:00Z',
-  locale: 'ru-RU', taxonomy, scenarios, flows };
+const pack = { pack_id: 'core-ru', version: '2.0.0', format: 2, min_app_version: 4, published_at: '2026-10-25T00:00:00Z',
+  locale: 'ru-RU', taxonomy: { ...taxonomy, categories: taxonomy.sectors.concat([{ key: 'shift', label: 'Хотя бы одно изменение' }]) }, scenarios, flows: [] };
 writeFileSync(join(here, '../app/src/main/assets/content/core-ru.json'), JSON.stringify(pack, null, 1) + '\n');
-console.log('scenarios', scenarios.length, 'flows', flows.length);
+const by = {}; scenarios.forEach(s => by[s.sector] = (by[s.sector] || 0) + 1);
+const pl = {}; scenarios.forEach(s => s.places.forEach(p => pl[p] = (pl[p] || 0) + 1));
+console.log('scenarios', scenarios.length, JSON.stringify(by), JSON.stringify(pl));
