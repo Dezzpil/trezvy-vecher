@@ -1,328 +1,172 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>Трезвый вечер</title>
 <style>
-:root{--bg:#10201c;--card:#18302a;--card2:#1f3b34;--tx:#eef2ee;--mut:#9fb3aa;--acc:#e8c77a;--ok:#7cc59a;--bad:#e58b7a;--r:16px}
+:root{
+ --bg:#0f1d1a;--bg2:#0b1714;--card:#172d28;--card2:#1f3b34;--line:#2a4840;--tx:#eef2ee;--mut:#9fb3aa;--acc:#e8c77a;--ok:#7cc59a;--bad:#e58b7a;
+ --s-body:#ef8f7c;--s-hands:#e8c77a;--s-mind:#8fb4e8;--s-people:#d39be0;--s-world:#7cc59a;--s-quiet:#7fd1d1;--s-shift:#b7b7a4;
+ --r:18px;--btn:48px;--ease:cubic-bezier(.2,.8,.2,1);--spring:cubic-bezier(.3,1.4,.5,1)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,Roboto,sans-serif;padding-bottom:84px}
-header{padding:18px 18px 6px}h1{font-size:22px;margin:0}h2{font-size:18px;margin:18px 0 8px}
-.sub{color:var(--mut);font-size:14px}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,Roboto,sans-serif}
+body{padding-bottom:calc(72px + env(safe-area-inset-bottom));overflow-x:hidden}
+h1{font-size:22px;margin:0;font-weight:700}h2{font-size:17px;margin:0 0 10px;font-weight:700}h3{font-size:15px;margin:0 0 6px}
+.sub{color:var(--mut);font-size:14px}.small{font-size:13px}.mut{color:var(--mut)}
 .wrap{padding:0 14px}
-.card{background:var(--card);border-radius:var(--r);padding:14px;margin:10px 0}
-.row{display:flex;gap:10px;align-items:center}.row>*{flex:1}
-.stat{text-align:center}.stat b{display:block;font-size:30px;color:var(--acc)}.stat span{font-size:12px;color:var(--mut)}
-button{font:inherit;border:0;border-radius:12px;padding:12px 14px;background:var(--card2);color:var(--tx);width:100%}
-button.main{background:var(--acc);color:#1b1b12;font-weight:700;font-size:18px;padding:18px}
-button.small{width:auto;padding:8px 12px;font-size:14px}
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin:12px 0}
+header.page{padding:20px 18px 6px}
+/* ---------- кнопки: одна высота, без переносов ---------- */
+button{font:inherit;border:0;border-radius:14px;height:var(--btn);padding:0 14px;background:var(--card2);color:var(--tx);width:100%;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ transition:transform .12s var(--ease),background .2s,color .2s,opacity .2s;cursor:pointer;min-width:0}
+button:active{transform:scale(.96)}
+button.pri{background:var(--acc);color:#1b1b12;font-weight:700}
+button.ok{background:var(--ok);color:#10201c;font-weight:700}
+button.ghost{background:transparent;color:var(--mut);border:1px solid var(--line)}
 button.danger{background:#5a2c26}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{padding:9px 13px;border-radius:999px;background:var(--card2);font-size:15px;width:auto}
-.chip.wide{width:100%;border-radius:12px}.chip.on{background:var(--acc);color:#1b1b12;font-weight:600}
-textarea,input[type=text],input[type=time],input[type=number]{width:100%;background:#0c1916;color:var(--tx);border:1px solid #2c4a42;border-radius:12px;padding:11px;font:inherit}
-textarea{min-height:80px}
-input[type=range]{width:100%;accent-color:var(--acc)}
-.cp{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #24423a}.cp:last-child{border:0}
-.done,.todo{white-space:nowrap;text-align:right}.done{color:var(--ok)}.todo{color:var(--mut)}
-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#0b1714;border-top:1px solid #23403a}
-nav button{background:none;border-radius:0;padding:10px 0 14px;font-size:12px;color:var(--mut)}
-nav button.on{color:var(--acc)}nav i{display:block;font-style:normal;font-size:20px}
-.tip{background:var(--card2);border-left:4px solid var(--acc);border-radius:10px;padding:11px 12px;margin:8px 0}
-.rec{display:flex;gap:10px;align-items:center}.rec .dot{width:12px;height:12px;border-radius:50%;background:var(--bad);animation:p 1s infinite}
-@keyframes p{50%{opacity:.2}}
-.timer{font-size:54px;text-align:center;color:var(--acc);font-variant-numeric:tabular-nums}
-.hist{font-size:14px}.hist .t{color:var(--mut);font-size:12px}
+button.icon{width:var(--btn);flex:0 0 var(--btn);padding:0}
+button.link{background:none;height:auto;padding:6px 2px;color:var(--mut);font-size:14px;width:auto;text-decoration:underline;text-underline-offset:3px}
+button.tiny{height:34px;border-radius:10px;font-size:14px;padding:0 12px;width:auto}
+.btns{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;margin-top:14px}
+.btns.c3{grid-template-columns:1fr 1fr 1.35fr;grid-auto-flow:row}
+.btns.c2{grid-template-columns:1fr 1.4fr;grid-auto-flow:row}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.opts.o3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.opts.o1{grid-template-columns:1fr}
+.opt{height:44px;border-radius:12px;font-size:15px;background:var(--card2)}
+.opt.on{background:var(--acc);color:#1b1b12;font-weight:600}
+/* горизонтальная лента чипов: всегда в одну строку */
+.scroller{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;padding:2px 14px 6px;margin:0 -14px;scrollbar-width:none}
+.scroller::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;width:auto;height:40px;border-radius:999px;padding:0 15px;font-size:15px;background:var(--card2);scroll-snap-align:start}
+.chip.on{background:var(--tx);color:#10201c;font-weight:600}
+textarea,input[type=text],input[type=time],input[type=number]{width:100%;background:#0c1916;color:var(--tx);border:1px solid var(--line);border-radius:12px;padding:11px;font:inherit}
+input[type=time]{height:var(--btn);padding:0 10px;color-scheme:dark}
+textarea{min-height:76px;resize:none}
+input[type=range]{width:100%;accent-color:var(--acc);height:28px}
+label.f{display:block;margin:16px 0 8px;color:var(--mut);font-size:14px}
+.tip{background:var(--card2);border-left:4px solid var(--acc);border-radius:10px;padding:11px 12px;margin:10px 0;font-size:15px}
 .warn{background:#3a2420;border-radius:12px;padding:12px;font-size:14px}
-.hide{display:none}
-.bar{height:8px;background:#0c1916;border-radius:4px;overflow:hidden}.bar div{height:100%;background:var(--acc)}
-label{display:block;margin:12px 0 6px;color:var(--mut);font-size:14px}
-.days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.days div{aspect-ratio:1;border-radius:6px;background:#0c1916;font-size:10px;display:flex;align-items:center;justify-content:center;color:var(--mut)}
+.hide{display:none!important}
+.rowline{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);min-height:56px}
+.rowline:last-child{border:0}
+.rowline.r3{grid-template-columns:1fr 104px 44px}
+.switch{appearance:none;width:44px;height:26px;border-radius:13px;background:var(--line);position:relative;transition:background .2s;margin:0}
+.switch:checked{background:var(--ok)}.switch::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s var(--ease)}
+.switch:checked::after{transform:translateX(18px)}
+/* ---------- навигация ---------- */
+nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(11,23,20,.96);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:20;backdrop-filter:blur(8px)}
+nav button{background:none;border-radius:0;height:64px;flex-direction:column;gap:3px;font-size:12px;color:var(--mut)}
+nav button svg{width:22px;height:22px;transition:transform .25s var(--spring)}
+nav button.on{color:var(--acc)}nav button.on svg{transform:translateY(-2px) scale(1.08)}
+/* ---------- переходы ---------- */
+.view{animation:vin .32s var(--ease) both}
+.view.back{animation-name:vback}
+@keyframes vin{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+@keyframes vback{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes glow{0%{box-shadow:0 0 0 0 rgba(232,199,122,.5)}100%{box-shadow:0 0 0 14px rgba(232,199,122,0)}}
+.rise{animation:rise .35s var(--ease) both}
+/* ---------- верх: колесо равновесия ---------- */
+.top{display:grid;grid-template-columns:136px 1fr;gap:12px;align-items:center;padding:16px 14px 4px}
+.wheel svg{width:136px;height:136px;display:block;overflow:visible}
+.petal{transform-box:view-box;transform-origin:70px 70px;transition:transform .8s var(--spring)}
+.petal-bg{opacity:.14}
+.wl{font-size:9.5px;fill:var(--mut);text-anchor:middle;dominant-baseline:middle}
+.wl.has{fill:var(--tx)}
+.wheel.pulse svg{animation:pop .6s var(--ease)}
+.topinfo .eq{font-size:15px;color:var(--mut)}.topinfo .eq b{font-size:34px;color:var(--tx);line-height:1;margin-right:2px}
+.topinfo .miss{font-size:14px;margin-top:6px;line-height:1.35}
+.topinfo .stk{font-size:13px;color:var(--mut);margin-top:8px}
+.loadbar{height:6px;border-radius:3px;background:#0c1916;margin-top:8px;overflow:hidden}.loadbar div{height:100%;background:linear-gradient(90deg,var(--ok),var(--acc),var(--bad));transition:width .6s var(--ease)}
+/* ---------- линия дня ---------- */
+.line{position:relative;padding:4px 14px 10px 14px}
+.line::before{content:'';position:absolute;left:31px;top:0;bottom:0;width:2px;background:var(--line)}
+.li{position:relative;display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:start;padding:7px 0;min-height:40px}
+.li .dot{width:12px;height:12px;border-radius:50%;margin:6px 0 0 12px;background:var(--mut);box-shadow:0 0 0 4px var(--bg);position:relative;z-index:1}
+.li .dot.hollow{background:var(--bg);border:2px solid var(--mut)}
+.li .tm{font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
+.li .tx{font-size:15px;line-height:1.35}
+.li .acts{display:flex;gap:6px;margin-top:6px;flex-wrap:nowrap}
+.li.future{opacity:.75}.li.future .dot{background:var(--bg);border:2px dashed var(--mut)}
+.li.new{animation:rise .5s var(--ease) both}.li.new .dot{animation:glow 1.2s ease-out 2}
+.li.place .tx{color:var(--mut);font-size:13px}.li.place .dot{width:8px;height:8px;margin:8px 0 0 14px}
+.daysep{margin:12px 0 2px 46px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+/* узел «сейчас» */
+.now{position:relative;margin:6px 0 6px;padding-left:0}
+.now .nowdot{position:absolute;left:10px;top:18px;width:16px;height:16px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 5px var(--bg);z-index:1;animation:glow 2s ease-out infinite}
+.now .nowbody{margin-left:46px}
+.nowhead{display:flex;align-items:center;justify-content:space-between;gap:10px;height:40px}
+.seg{position:relative;display:grid;grid-template-columns:1fr 1fr;background:var(--bg2);border-radius:12px;padding:3px;width:230px;height:40px}
+.seg button{background:none;height:34px;border-radius:10px;font-size:14px;color:var(--mut);position:relative;z-index:1}
+.seg button.on{color:#1b1b12;font-weight:600}
+.seg .ind{position:absolute;top:3px;left:3px;width:calc(50% - 3px);height:34px;border-radius:10px;background:var(--acc);transition:transform .3s var(--ease)}
+.seg.r .ind{transform:translateX(100%)}
+.pull{display:grid;grid-template-columns:70px 1fr 34px;gap:8px;align-items:center;margin-top:6px;height:40px}
+.pull b{font-variant-numeric:tabular-nums;text-align:right}
+.pull input{accent-color:var(--bad)}
+.wants{overflow:hidden;transition:max-height .35s var(--ease),opacity .3s;max-height:0;opacity:0}
+.wants.open{max-height:420px;opacity:1}
+.wants .scroller{margin:0;padding:2px 0 6px}
+.plt{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
+.plt input{width:auto;min-width:120px;height:44px}
+/* ---------- карточка хода ---------- */
+.mv{position:relative;background:var(--card);border-radius:var(--r);padding:16px;margin-top:10px;border-top:4px solid var(--sc,var(--acc));
+ transition:transform .22s var(--ease),opacity .22s var(--ease);will-change:transform}
+.mv.out{transform:translateX(-40px) rotate(-1.5deg);opacity:0}
+.mv.in{animation:cin .34s var(--ease) both}
+@keyframes cin{from{transform:translateX(40px) rotate(1.5deg);opacity:0}to{transform:none;opacity:1}}
+.mv.go{animation:pop .4s var(--ease)}
+.mv .meta{display:flex;align-items:center;gap:8px;height:28px}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;color:#10201c;background:var(--sc);white-space:nowrap}
+.mv .meta .sub{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+.mv .more{width:36px;height:36px;flex:0 0 36px;border-radius:10px;background:none;color:var(--mut);padding:0}
+.mv h2{font-size:20px;margin:8px 0 6px}
+.mv .why{font-size:13px;color:var(--mut);margin-top:10px;display:flex;gap:6px;align-items:center}
+.mv .why i{width:8px;height:8px;border-radius:50%;background:var(--sc);display:inline-block;flex:0 0 8px}
+.steps{list-style:none;padding:0;margin:12px 0 0}
+.steps li{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line);animation:rise .35s var(--ease) both}
+.steps li .ck{width:22px;height:22px;border-radius:7px;border:2px solid var(--mut);transition:background .2s,border-color .2s}
+.steps li.on .ck{background:var(--ok);border-color:var(--ok)}
+.steps li.on span{color:var(--mut);text-decoration:line-through}
+.ring{display:grid;place-items:center;margin:14px auto 0;width:120px;height:120px;position:relative}
+.ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:8}
+.ring .bg{stroke:var(--line)}.ring .fg{stroke:var(--sc,var(--acc));stroke-linecap:round;transition:stroke-dashoffset .5s linear}
+.ring b{font-size:26px;font-variant-numeric:tabular-nums}
+.res{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.badge{font-size:12px;color:var(--sc);font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.mv.shift{--sc:var(--s-shift)}
+.nowlinks{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;height:40px}
+.nowlinks .tgl{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut)}
+.flyer{position:fixed;width:18px;height:18px;border-radius:50%;z-index:50;pointer-events:none}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--tx);color:#10201c;padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:all .3s var(--ease);z-index:60;max-width:88vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+/* ---------- нижняя панель ---------- */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;transition:opacity .28s;z-index:40}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:88vh;overflow-y:auto;background:var(--card);border-radius:22px 22px 0 0;padding:8px 16px calc(20px + env(safe-area-inset-bottom));
+ transform:translateY(105%);transition:transform .34s var(--ease);z-index:41}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 12px}
+.sheet-open .backdrop{opacity:1}.sheet-open .sheet{transform:none}
+/* ---------- прочее ---------- */
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stat3 b{display:block;font-size:28px;color:var(--acc)}.stat3 span{font-size:12px;color:var(--mut)}
+.bar{height:8px;background:#0c1916;border-radius:4px;overflow:hidden;margin-top:4px}.bar div{height:100%;background:var(--acc);transition:width .6s var(--ease)}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.days div{aspect-ratio:1;border-radius:7px;background:#0c1916;font-size:11px;display:flex;align-items:center;justify-content:center;color:var(--mut)}
 .days .s{background:#2f6b4e;color:#fff}.days .d{background:#6b3a2f;color:#fff}.days .c{outline:2px solid var(--acc)}
+.dayrow{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.dayrow svg{width:52px;height:52px}
+.lib{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.lib .t{font-size:15px}.lib .m{font-size:12px;color:var(--mut)}
+.rec{display:flex;gap:10px;align-items:center;height:var(--btn)}.rec .dot{width:12px;height:12px;border-radius:50%;background:var(--bad);animation:blink 1s infinite;flex:0 0 12px}
+@keyframes blink{50%{opacity:.2}}
+.timer{font-size:54px;text-align:center;color:var(--acc);font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style></head><body>
 <div id="app"></div>
 <nav id="nav"></nav>
+<div id="sheet-root"></div>
+<div class="toast" id="toast"></div>
 <script src="engine.js"></script>
-<script>
-// ---------- Хранилище ----------
-const HAS = typeof Android !== 'undefined';
-let D = {entries:[], reasons:[], reminders:[
- {t:'10:00',k:'morning',on:true},{t:'16:30',k:'afternoon',on:true},{t:'19:00',k:'evening',on:true},{t:'22:30',k:'night',on:true}], ritual:['Закрыть рабочие приложения','Переодеться или душ']};
-try{const s=HAS?Android.load():localStorage.getItem('d'); if(s) D=Object.assign(D,JSON.parse(s));}catch(e){}
-D=TV.migrate(D);
-function save(){const s=JSON.stringify(D); HAS?Android.save(s):localStorage.setItem('d',s);}
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-const dayKey=ts=>{const d=new Date(ts);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
-const today=()=>dayKey(Date.now());
-const fmtT=ts=>new Date(ts).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-const fmtD=ts=>new Date(ts).toLocaleDateString('ru-RU',{day:'numeric',month:'long',weekday:'short'});
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-
-// ---------- Справочники ----------
-const WANTS=[['silence','тишины'],['alone','чтобы меня не трогали'],['stopthink','перестать думать'],['pleasure','удовольствия'],['reward','награды за день'],['tired','просто устал'],['drunk','именно опьянения'],['other','другое']];
-const TRIG=[['thought','мысль о вечере/отдыхе'],['time','время суток'],['stress','напряжение'],['duty','много обязанностей'],['family','шум/дети/дом'],['bored','скука'],['sad','хмуро, подавленно'],['shop','вижу магазин/пиво'],['other','другое']];
-const CP={morning:'Утро',afternoon:'День',evening:'Вечерний перерыв',night:'Итог дня'};
-const TIPS={
- silence:['Уйди туда, где тихо: другая комната, балкон, прогулка вокруг дома 15 минут. Наушники без музыки тоже считаются.'],
- alone:['Скажи дома: «Мне нужно полчаса, когда ко мне не обращаются с не срочным. Потом я снова с вами». Если сейчас на тебе дети — сначала передай ответственность другому взрослому.','Ты трезвый — но это не значит, что ты на дежурстве. Ты имеешь право быть недоступным без банки в руке.'],
- stopthink:['Голове нужен другой канал: 20 приседаний или отжиманий, холодная вода на лицо, душ. Тело быстрее выключает мысли, чем уговоры.','Выгрузи мысли голосом прямо здесь — 1 минута записи «что крутится в голове».'],
- pleasure:['Вкусный безалкогольный напиток в твоей обычной кружке/стакане, детектив, игра, музыка. Удовольствие — да, но без требования быть полезным.'],
- reward:['День закончен — отметь это ритуалом, а не банкой: переоделся, душ, напиток, 10 минут ничего не решать. Это и есть «снять плащ».'],
- tired:['Если устал — это не про пиво, это про сон и еду. Поешь нормально, ляг пораньше. Тяга на голодный и усталый организм сильнее.'],
- drunk:['Это честный ответ, и он важен. Это тяга, а тяга идёт волной: пик и спад. Запусти таймер на 10 минут и ничего не решай до его конца.','Отметь это для врача: если желание именно опьянения повторяется часто — это аргумент обсудить препараты от тяги.'],
- other:['Назови точнее, чего именно не хватает, — голосом или текстом. Потом один самый маленький шаг, который даёт часть этого без алкоголя.']
-};
-const BASE='Вопрос не «выпить или нет», а «что я хочу сейчас с себя снять?». Сделай один шаг, который уменьшает именно эту нагрузку.';
-
-// ---------- Навигация ----------
-let stack=['home'], st={}, stp=[st];
-function popScreen(){const s=stack.pop();stp.pop();st=stp[stp.length-1]||{};return s}
-function resetStack(s){stack=[s];st={};stp=[st]}
-function go(s,p){stack.push(s);st=p||{};stp.push(st);render();window.scrollTo(0,0)}
-function tab(s){resetStack(s);render();window.scrollTo(0,0)}
-window.goBack=()=>{stopTimer();if(rec)stopRec();if(stack.length>1){const s=popScreen();window.onLeave&&onLeave(s);render();return 'ok'}return 'exit'};
-window.openFromNotification=k=>{if(window.openScenarioNotification&&openScenarioNotification(k))return;if(k.startsWith('tab:'))tab(k.slice(4));else if(k==='craving')go('craving');else go('checkin',{kind:k})};
-const NAV=[['home','⌂','Сегодня'],['history','≡','Дневник'],['stats','▦','Динамика'],['settings','⚙','Настройки']];
-function render(){
- const s=stack[stack.length-1];
- document.getElementById('nav').innerHTML=NAV.map(n=>`<button class="${stack[0]===n[0]?'on':''}" onclick="tab('${n[0]}')"><i>${n[1]}</i>${n[2]}</button>`).join('');
- document.getElementById('app').innerHTML=V[s]();
- if(V[s+'_after'])V[s+'_after']();
-}
-
-// ---------- Подсчёт стриков ----------
-function dayInfo(){
- const m={};
- for(const e of D.entries){const k=dayKey(e.ts);m[k]=m[k]||{cp:new Set(),drank:null,cravings:0};
-  if(e.type==='checkin'){m[k].cp.add(e.kind); if(e.kind==='night'&&e.drank!=null)m[k].drank=e.drank;}
-  if(e.type==='craving')m[k].cravings++;}
- return m;
-}
-function streaks(){
- const m=dayInfo();let sober=0,check=0;const d=new Date();
- // если сегодня итог ещё не отмечен — считаем со вчера
- if(!(m[today()]&&m[today()].drank!=null))d.setDate(d.getDate()-1);
- const d2=new Date(d);
- while(true){const k=dayKey(d);if(m[k]&&m[k].drank===false){sober++;d.setDate(d.getDate()-1)}else break}
- const d3=new Date();if(!(m[today()]&&m[today()].cp.size))d3.setDate(d3.getDate()-1);
- while(true){const k=dayKey(d3);if(m[k]&&m[k].cp.size){check++;d3.setDate(d3.getDate()-1)}else break}
- let best=0,cur=0;const keys=Object.keys(m).sort();
- if(keys.length){const s=new Date(keys[0]);const e=new Date();for(;s<=e;s.setDate(s.getDate()+1)){const x=m[dayKey(s)];if(x&&x.drank===false){cur++;best=Math.max(best,cur)}else if(x&&x.drank===true)cur=0;else cur=0}}
- return {sober,check,best};
-}
-
-// ---------- Экраны ----------
-const V={};
-V.home=()=>{
- const s=streaks(),m=dayInfo()[today()]||{cp:new Set(),cravings:0};
- const cps=Object.keys(CP).map(k=>`<div class="cp" onclick="go('checkin',{kind:'${k}'})"><div><b>${CP[k]}</b><div class="sub">${D.reminders.find(r=>r.k===k)?.t||''}</div></div><div class="${m.cp.has(k)?'done':'todo'}" style="flex:0">${m.cp.has(k)?'✓ отмечено':'отметить ›'}</div></div>`).join('');
- return `<header><h1>Трезвый вечер</h1><div class="sub">${fmtD(Date.now())}</div></header><div class="wrap">
- <div class="card row"><div class="stat"><b>${s.sober}</b><span>дней без пива</span></div><div class="stat"><b>${s.check}</b><span>дней с отметками</span></div><div class="stat"><b>${s.best}</b><span>лучшая серия</span></div></div>
- <button class="main" onclick="go('craving')">Чувствую тягу</button>
- ${window.homeExtra?homeExtra():''}
- <div class="card"><h2 style="margin-top:0">Чекпоинты сегодня</h2>${cps}</div>
- <div class="card"><div class="sub">Напоминание себе</div><div style="margin-top:6px">Моя трезвость не означает, что я всегда доступен. Отдых не нужно обеспечивать алкоголем.</div></div>
- <div class="row"><button onclick="go('voice')">🎙 Просто проговорить</button><button onclick="go('ritual')">Снять плащ</button></div>
- ${m.cravings?`<div class="sub" style="margin:10px 4px">Тяга сегодня отмечена: ${m.cravings} раз(а)</div>`:''}
- </div>`;
-};
-
-// --- Тяга: пошагово ---
-let F={};
-V.craving=()=>{ if(!st.init){F={id:uid(),ts:Date.now(),type:'craving',intensity:5,wants:[],triggers:[],note:'',audio:[]};st.init=1}
- return `<header><h1>Тяга</h1><div class="sub">${fmtT(F.ts)} · заметить — уже половина дела</div></header><div class="wrap">
- <div class="card"><label>Насколько сильно: <b id="iv">${F.intensity}</b>/10</label><input type="range" min="0" max="10" value="${F.intensity}" oninput="F.intensity=+this.value;iv.textContent=this.value">
- <label>Сейчас я хочу…</label><div class="chips">${chips(WANTS,'wants')}</div>
- <label>Что запустило</label><div class="chips">${chips(TRIG,'triggers')}</div>
- <label>Что чувствую (можно коротко)</label><textarea oninput="F.note=this.value" placeholder="например: хмуро, раздражает шум, хочу чтобы отстали">${esc(F.note)}</textarea>
- ${recBlock()}</div>
- <button class="main" onclick="saveCraving()">Что мне сейчас делать →</button></div>`;
-};
-function chips(list,field){return list.map(([k,t])=>`<button class="chip ${F[field].includes(k)?'on':''}" onclick="tog('${field}','${k}',this)">${t}</button>`).join('')}
-function tog(f,k,el){const a=F[f];const i=a.indexOf(k);i<0?a.push(k):a.splice(i,1);el.classList.toggle('on')}
-function saveCraving(){if(rec)stopRec();D.entries.push(F);save();popScreen();go('advice',{e:F})}
-
-V.advice=()=>{const e=st.e;const w=e.wants.length?e.wants:['other'];
- let tips=w.flatMap(k=>TIPS[k]||[]);
- const reasons=D.reasons.length?`<div class="card"><div class="sub">Мои причины что-то менять</div>${D.reasons.map(r=>`<div>• ${esc(r)}</div>`).join('')}</div>`:'';
- return `<header><h1>Сейчас</h1><div class="sub">${BASE}</div></header><div class="wrap">
- ${tips.map(t=>`<div class="tip">${t}</div>`).join('')}
- ${window.adviceExtra?adviceExtra(e):''}
- ${reasons}
- <div class="card"><div class="sub">Волна тяги: 10 минут ничего не решай автоматически. Останься в перерыве, займись выбранным делом.</div>
- <div class="timer" id="tm">10:00</div><button onclick="startTimer(600)">Запустить 10 минут</button></div>
- ${e.intensity>=8?`<div class="warn">Сильная тяга — отметь это для врача-нарколога. Ты не обязан справляться только силой воли: есть препараты, снижающие тягу, их подбирает врач.</div>`:''}
- <div class="card"><label>Чем всё закончилось? (можно отметить позже в «Дневнике»)</label>
- <div class="row"><button onclick="outcome('passed')">Отпустило</button><button onclick="outcome('drank')">Выпил</button></div></div>
- </div>`;};
-function outcome(o){const e=D.entries.find(x=>x.id===st.e.id);if(e){e.outcome=o;e.outcomeTs=Date.now();save()}stopTimer();
- document.querySelector('.wrap').insertAdjacentHTML('beforeend',`<div class="tip">${o==='passed'?'Отлично. Запомни, что сработало — это твой рабочий инструмент.':'Записано, без самобичевания. Это данные: завтра посмотрим, где сломался план. Не пытайся резко «компенсировать» — если появятся дрожь, потливость, сильное сердцебиение — к врачу.'}</div>`)}
-let TM=null;
-function startTimer(sec){stopTimer();const end=Date.now()+sec*1000;TM=setInterval(()=>{const l=Math.max(0,Math.round((end-Date.now())/1000));const el=document.getElementById('tm');if(el)el.textContent=String(Math.floor(l/60)).padStart(2,'0')+':'+String(l%60).padStart(2,'0');if(!l){stopTimer();HAS&&Android.vibrate();el&&(el.textContent='Волна прошла?')}},500)}
-function stopTimer(){if(TM)clearInterval(TM);TM=null}
-
-// --- Чекпоинты ---
-V.checkin=()=>{const k=st.kind;if(!st.init){F={id:uid(),ts:Date.now(),type:'checkin',kind:k,mood:5,note:'',audio:[]};
-  if(k==='night')Object.assign(F,{drank:null,cans:0,freeTime:null,relief:null,stronger:null});
-  if(k==='morning')Object.assign(F,{plan:''});
-  if(k==='afternoon')Object.assign(F,{thought:null,load:5});
-  if(k==='evening')Object.assign(F,{ritualDone:[],agreed:null});
-  st.init=1}
- const yn=(f,a='Да',b='Нет')=>`<div class="row"><button class="chip ${F[f]===true?'on':''}" onclick="F.${f}=true;render()">${a}</button><button class="chip ${F[f]===false?'on':''}" onclick="F.${f}=false;render()">${b}</button></div>`;
- let body='';
- if(k==='morning')body=`<label>Что сегодня потребует от меня больше всего?</label><textarea oninput="F.plan=this.value">${esc(F.plan)}</textarea>
-  <div class="tip">Подумай заранее: когда сегодня будет твой перерыв без дежурства? Договорись о нём, пока нет тяги.</div>${window.morningExtra?morningExtra():''}`;
- if(k==='afternoon')body=`<label>Мысль «вечером можно будет выпить» уже появилась?</label>${yn('thought')}
-  <label>Насколько я сейчас нагружен: <b id="lv">${F.load}</b>/10</label><input type="range" min="0" max="10" value="${F.load}" oninput="F.load=+this.value;lv.textContent=this.value">
-  <div class="tip">Если мысль есть — это сигнал, а не приказ. Что именно ты хочешь снять с себя вечером? Запиши.</div>`;
- if(k==='evening')body=`<label>Перерыв дома согласован?</label>${yn('agreed')}
-  <label>Ритуал «снять плащ» (отметь, что сделал)</label><div class="chips">${D.ritual.map((r,i)=>`<button class="chip ${F.ritualDone.includes(r)?'on':''}" onclick="tg2(${i},this)">${esc(r)}</button>`).join('')}</div>
-  <div class="tip">Когда начинается твой перерыв — не ищи, чем быть полезным. Выбирай, что приятно, или ничего не делай.</div>`;
- if(k==='night')body=`<label>Пил сегодня?</label>${yn('drank','Да','Нет')}
-  <div class="${F.drank?'':'hide'}"><label>Сколько банок</label><input type="number" min="0" value="${F.cans}" oninput="F.cans=+this.value"></div>
-  <label>Было время, когда я действительно ничего не должен?</label>${yn('freeTime')}
-  <label>Получилось почувствовать облегчение до алкоголя / без него?</label>${yn('relief')}
-  <label>Что было сильнее?</label><div><button style="margin-bottom:8px" class="chip wide ${F.stronger==='craving'?'on':''}" onclick="F.stronger='craving';render()">тяга к опьянению</button><button class="chip wide ${F.stronger==='duties'?'on':''}" onclick="F.stronger='duties';render()">не мог отключиться от обязанностей</button></div>
-  <div class="tip">Хмурый трезвый вечер — не доказательство, что без пива хуже. Это данные. Если подавленность держится — обсуди с врачом.</div>`;
- return `<header><h1>${CP[k]}</h1><div class="sub">${fmtT(F.ts)}</div></header><div class="wrap"><div class="card">
- <label>Настроение: <b id="mv">${F.mood}</b>/10</label><input type="range" min="0" max="10" value="${F.mood}" oninput="F.mood=+this.value;mv.textContent=this.value">
- ${body}<label>Заметка</label><textarea oninput="F.note=this.value">${esc(F.note)}</textarea>${recBlock()}</div>
- <button class="main" onclick="saveCheck()">Сохранить</button></div>`;};
-function tg2(i,el){const r=D.ritual[i];const a=F.ritualDone;const j=a.indexOf(r);j<0?a.push(r):a.splice(j,1);el.classList.toggle('on')}
-function saveCheck(){if(rec)stopRec();D.entries.push(F);if(F.kind==='night'&&window.onNightCheck)onNightCheck(F);save();
- if(F.kind==='afternoon'&&F.thought&&window.startFlow){popScreen();startFlow('day_plan',{trigger:'afternoon_checkin',checkpoint_id:F.id});return}
- if(F.kind==='afternoon'&&F.thought){popScreen();go('ritual');return}
- goBack()}
-
-// --- Голос ---
-let rec=null,recStart=0,recTick=null;
-function recBlock(){return `<label>Голосом</label><div id="recb">${recInner()}</div>`}
-function recInner(){return `${(F.audio||[]).map(a=>`<div class="rec"><button class="small" onclick="playA('${a}')">▶ ${a.slice(-10)}</button></div>`).join('')}
- ${rec?`<div class="rec"><div class="dot" style="flex:0 0 12px"></div><span id="rt">0:00</span><button class="danger small" onclick="stopRec()">Стоп</button></div>`:`<button onclick="startRec()">🎙 Записать, что чувствую</button>`}`}
-function startRec(){if(!HAS){alert('Запись работает в приложении');return}
- const r=Android.startRecording(F.id+'_'+(F.audio.length+1));
- if(r==='no_permission'){alert('Разреши доступ к микрофону и нажми ещё раз');return}
- if(r.startsWith('error')){alert('Не удалось начать запись: '+r);return}
- rec=r;recStart=Date.now();document.getElementById('recb').innerHTML=recInner();
- recTick=setInterval(()=>{const s=Math.round((Date.now()-recStart)/1000);const el=document.getElementById('rt');if(el)el.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')},500)}
-function stopRec(){const n=Android.stopRecording();clearInterval(recTick);if(n){F.audio.push(n);F.audioSec=(F.audioSec||0)+Math.round((Date.now()-recStart)/1000)}rec=null;const b=document.getElementById('recb');if(b)b.innerHTML=recInner()}
-function playA(a){HAS&&Android.play(a)}
-V.voice=()=>{if(!st.init){F={id:uid(),ts:Date.now(),type:'voice',mood:5,note:'',audio:[]};st.init=1}
- return `<header><h1>Проговорить</h1><div class="sub">Без анкеты. Просто скажи, что сейчас происходит.</div></header><div class="wrap"><div class="card">
- <label>Настроение: <b id="mv">${F.mood}</b>/10</label><input type="range" min="0" max="10" value="${F.mood}" oninput="F.mood=+this.value;mv.textContent=this.value">
- ${recBlock()}<label>Заметка (по желанию)</label><textarea oninput="F.note=this.value">${esc(F.note)}</textarea></div>
- <button class="main" onclick="saveCheck()">Сохранить</button></div>`};
-
-// --- Ритуал ---
-V.ritual=()=>`<header><h1>Снять плащ</h1><div class="sub">Первые глотки давали облегчение. Дай его себе по-другому. Выбери 2 пункта, не все.</div></header><div class="wrap">
- <div class="card">${['Закрыть рабочие приложения','Переодеться или принять душ','Уйти в своё место отдыха','Взять обычный вкусный напиток','10 минут ничего не решать','Прогулка одному 15 минут','Короткая тренировка'].map(r=>`<div class="tip">${r}</div>`).join('')}</div>
- <div class="card"><div class="sub">Скажи дома:</div><div style="margin-top:6px">«Мне нужен небольшой промежуток, когда я не занимаюсь делами и ко мне не обращаются с не срочным. Я тоже готов обеспечить тебе такое время».</div></div>
- <div class="card"><div class="timer" id="tm">10:00</div><button onclick="startTimer(600)">10 минут ничего не решать</button></div></div>`;
-
-// --- Дневник ---
-V.history=()=>{const list=[...D.entries].sort((a,b)=>b.ts-a.ts);let last='',h='';
- for(const e of list){const dk=fmtD(e.ts);if(dk!==last){h+=`<h2>${dk}</h2>`;last=dk}
-  h+=`<div class="card hist" onclick="go('entry',{id:'${e.id}'})"><div class="t">${fmtT(e.ts)} · ${title(e)}</div>${summary(e)}</div>`}
- return `<header><h1>Дневник</h1><div class="sub">Всего записей: ${D.entries.length}</div></header><div class="wrap">${h||'<div class="card">Пока пусто.</div>'}</div>`};
-function title(e){return e.type==='craving'?'Тяга '+e.intensity+'/10':e.type==='voice'?'Голосовая заметка':CP[e.kind]}
-function lbl(list,keys){return (keys||[]).map(k=>(list.find(x=>x[0]===k)||[,k])[1]).join(', ')}
-function summary(e){const p=[];
- if(e.type==='craving'){if(e.wants.length)p.push('хочу: '+lbl(WANTS,e.wants));if(e.triggers.length)p.push('триггер: '+lbl(TRIG,e.triggers));if(e.outcome)p.push(e.outcome==='passed'?'→ отпустило':'→ выпил')}
- if(e.kind==='night'&&e.drank!=null)p.push(e.drank?'пил, банок: '+e.cans:'не пил');
- if(e.mood!=null)p.push('настроение '+e.mood);
- if(e.note)p.push('«'+esc(e.note.slice(0,80))+'»');if(e.audio?.length)p.push('🎙 '+e.audio.length);return p.join(' · ')}
-V.entry=()=>{const e=D.entries.find(x=>x.id===st.id);if(!e)return'';F=e;
- return `<header><h1>${title(e)}</h1><div class="sub">${fmtD(e.ts)}, ${fmtT(e.ts)}</div></header><div class="wrap"><div class="card">${summary(e)}<div style="margin-top:10px;white-space:pre-wrap">${esc(e.note)}</div>
- ${(e.audio||[]).map(a=>`<button class="small" style="margin:6px 6px 0 0" onclick="playA('${a}')">▶ запись</button>`).join('')}</div>
- ${e.type==='craving'&&!e.outcome?`<div class="row"><button onclick="setOut('passed')">Отпустило</button><button onclick="setOut('drank')">Выпил</button></div>`:''}
- <button class="danger" style="margin-top:20px" onclick="delE()">Удалить запись</button></div>`};
-function setOut(o){F.outcome=o;F.outcomeTs=Date.now();save();render()}
-function delE(){if(!confirm('Удалить запись?'))return;(F.audio||[]).forEach(a=>HAS&&Android.deleteAudio(a));D.entries=D.entries.filter(x=>x.id!==F.id);save();goBack()}
-
-// --- Динамика ---
-V.stats=()=>{const m=dayInfo();const days=[];const d=new Date();d.setDate(d.getDate()-27);
- for(let i=0;i<28;i++){const k=dayKey(d);const x=m[k];days.push(`<div class="${x&&x.drank===false?'s':x&&x.drank?'d':''} ${x&&x.cp.size?'c':''}">${d.getDate()}</div>`);d.setDate(d.getDate()+1)}
- const cr=D.entries.filter(e=>e.type==='craving');const cnt=(f,list)=>{const c={};cr.forEach(e=>e[f].forEach(k=>c[k]=(c[k]||0)+1));return Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="margin:6px 0">${lbl(list,[k])} — ${v}<div class="bar"><div style="width:${100*v/cr.length}%"></div></div></div>`).join('')||'<div class="sub">нет данных</div>'};
- const hours={};cr.forEach(e=>{const h=new Date(e.ts).getHours();hours[h]=(hours[h]||0)+1});
- const passed=cr.filter(e=>e.outcome==='passed').length,drank=cr.filter(e=>e.outcome==='drank').length;
- return `<header><h1>Динамика</h1><div class="sub">Зелёный — не пил, красный — пил, рамка — были отметки</div></header><div class="wrap">
- <div class="card"><div class="days">${days.join('')}</div></div>
- <div class="card"><div class="row"><div class="stat"><b>${cr.length}</b><span>эпизодов тяги</span></div><div class="stat"><b>${passed}</b><span>отпустило</span></div><div class="stat"><b>${drank}</b><span>выпил</span></div></div></div>
- <div class="card"><h2 style="margin-top:0">Чего я хотел</h2>${cnt('wants',WANTS)}</div>
- <div class="card"><h2 style="margin-top:0">Триггеры</h2>${cnt('triggers',TRIG)}</div>
- <div class="card"><h2 style="margin-top:0">Время тяги</h2>${Object.keys(hours).sort((a,b)=>a-b).map(h=>`${h}:00 — ${hours[h]}`).join('<br>')||'<div class="sub">нет данных</div>'}</div>${window.statsExtra?statsExtra():''}</div>`};
-
-// --- Настройки и экспорт ---
-V.settings=()=>`<header><h1>Настройки</h1></header><div class="wrap">
- <div class="card"><h2 style="margin-top:0">Выгрузка для анализа</h2><div class="sub">ZIP: journal.md (хронология для чата), data.json (все данные), audio/ (голосовые записи).</div>
- <button class="main" style="margin-top:10px" onclick="doExport()">Выгрузить дневник</button>
- <button style="margin-top:8px" onclick="Android.shareText(buildMd())">Отправить только текст</button></div>
- ${window.settingsExtra?settingsExtra():''}
- <div class="card"><h2 style="margin-top:0">Напоминания</h2>${D.reminders.map((r,i)=>`<div class="cp"><div>${(window.REM||CP)[r.k]||r.k}</div><input type="time" value="${r.t}" style="flex:0 0 110px" onchange="D.reminders[${i}].t=this.value;D.reminders[${i}].custom=true;saveRem()"><input type="checkbox" ${r.on?'checked':''} style="flex:0 0 30px;width:24px;height:24px" onchange="D.reminders[${i}].on=this.checked;saveRem()"></div>`).join('')}</div>
- <div class="card"><h2 style="margin-top:0">Мои причины</h2><div class="sub">Показываются, когда отмечаешь тягу.</div>${D.reasons.map((r,i)=>`<div class="cp"><div>${esc(r)}</div><button class="small" style="flex:0" onclick="D.reasons.splice(${i},1);save();render()">✕</button></div>`).join('')}
- <div class="row" style="margin-top:8px"><input type="text" id="nr" placeholder="например: хочу помнить вечера с детьми"><button class="small" style="flex:0" onclick="if(nr.value.trim()){D.reasons.push(nr.value.trim());save();render()}">+</button></div></div>
- <div class="card"><h2 style="margin-top:0">Мой ритуал «снять плащ»</h2>${D.ritual.map((r,i)=>`<div class="cp"><div>${esc(r)}</div><button class="small" style="flex:0" onclick="D.ritual.splice(${i},1);save();render()">✕</button></div>`).join('')}
- <div class="row" style="margin-top:8px"><input type="text" id="nri" placeholder="новый пункт"><button class="small" style="flex:0" onclick="if(nri.value.trim()){D.ritual.push(nri.value.trim());save();render()}">+</button></div></div>
- <div class="warn">При дрожи, потливости, тошноте, сильном сердцебиении после сокращения алкоголя — к врачу. При судорогах, галлюцинациях, спутанности — 112.<button class="danger" style="margin-top:8px" onclick="Android.call('112')">Позвонить 112</button></div>
- <div class="sub" style="margin:16px 4px">Все данные хранятся только на телефоне. Удаление приложения удалит их — выгружай регулярно.</div></div>`;
-function saveRem(){save();HAS&&Android.setReminders(JSON.stringify(D.reminders))}
-function buildMd(){const L=[];const s=streaks();
- L.push('# Дневник «Трезвый вечер»','',`Выгружено: ${new Date().toLocaleString('ru-RU')}`,`Записей: ${D.entries.length}. Текущая серия без пива: ${s.sober} дн., лучшая: ${s.best} дн.`,'');
- if(D.reasons.length)L.push('Мои причины: '+D.reasons.join('; '),'');
- L.push('Голосовые записи лежат в папке audio/, имена файлов указаны у записей.','');
- const list=[...D.entries].sort((a,b)=>a.ts-b.ts);let last='';
- for(const e of list){const dk=dayKey(e.ts);if(dk!==last){L.push('',`## ${dk} (${fmtD(e.ts)})`);last=dk}
-  const f=[];
-  if(e.type==='craving'){f.push(`интенсивность ${e.intensity}/10`);if(e.wants.length)f.push('хотел: '+lbl(WANTS,e.wants));if(e.triggers.length)f.push('триггеры: '+lbl(TRIG,e.triggers));f.push('исход: '+(e.outcome==='passed'?'отпустило':e.outcome==='drank'?'выпил':'не отмечен'))}
-  if(e.mood!=null)f.push(`настроение ${e.mood}/10`);
-  if(e.kind==='morning'&&e.plan)f.push('нагрузка дня: '+e.plan);
-  if(e.kind==='afternoon'){f.push('мысль о пиве: '+(e.thought==null?'—':e.thought?'да':'нет'));f.push(`нагруженность ${e.load}/10`)}
-  if(e.kind==='evening'){f.push('перерыв согласован: '+(e.agreed==null?'—':e.agreed?'да':'нет'));if(e.ritualDone.length)f.push('ритуал: '+e.ritualDone.join(', '))}
-  if(e.kind==='night'){f.push('пил: '+(e.drank==null?'—':e.drank?`да, банок ${e.cans}`:'нет'));f.push('свободное время: '+(e.freeTime==null?'—':e.freeTime?'да':'нет'));f.push('облегчение без алкоголя: '+(e.relief==null?'—':e.relief?'да':'нет'));if(e.stronger)f.push('сильнее было: '+(e.stronger==='craving'?'тяга к опьянению':'обязанности'))}
-  L.push(`- **${fmtT(e.ts)} — ${title(e)}**: ${f.join('; ')}`);
-  if(e.note)L.push(`  - заметка: ${e.note.replace(/\n/g,' ')}`);
-  if(e.audio?.length)L.push(`  - аудио: ${e.audio.map(a=>'audio/'+a).join(', ')}`);
- }
- if(window.mdExtra)L.push(mdExtra());
- return L.join('\n')}
-function doExport(){if(!HAS){alert(buildMd());return}const r=Android.export2?Android.export2(buildMd(),exportScenariosJson(),'trezvo_'+today()+'.zip'):Android.export(buildMd(),'trezvo_'+today()+'.zip');if(r!=='ok')alert(r)}
-if(HAS)Android.setReminders(JSON.stringify(D.reminders));
-
-// ---------- Самотест (запускается только по adb-интенту selftest или ?selftest) ----------
-window.onerror=(m,src,l)=>{console.error('JSERROR '+m+' @'+l)};
-async function selfTest(){
- const errs=[],log=m=>console.log('SELFTEST '+m),ok=(c,m)=>{if(!c){errs.push(m);console.error('SELFTEST FAIL '+m)}else log('pass '+m)};
- const sleep=ms=>new Promise(r=>setTimeout(r,ms));
- const backup=JSON.stringify(D);const testAudio=[];
- try{
-  for(const t of ['home','history','stats','settings']){tab(t);ok(document.getElementById('app').innerHTML.length>100,'render '+t)}
-  tab('home');go('craving');ok(document.body.innerHTML.includes('Насколько сильно'),'craving screen');
-  [...document.querySelectorAll('.chip')].filter(b=>['тишины','именно опьянения','мысль о вечере/отдыхе'].includes(b.textContent)).forEach(b=>b.click());
-  F.intensity=8;F.note='тест';const cid=F.id;
-  if(HAS){const r=Android.startRecording(F.id+'_1');ok(!r.startsWith('error')&&r!=='no_permission','start recording: '+r);rec=r;recStart=Date.now();await sleep(2500);stopRec();
-   ok(F.audio.length===1,'audio attached');testAudio.push(...F.audio);ok(Android.audioSize(F.audio[0])>500,'audio file size '+Android.audioSize(F.audio[0]))}
-  saveCraving();ok(stack.at(-1)==='advice','advice screen');
-  const h=document.getElementById('app').innerHTML;ok(h.includes('Уйди туда, где тихо')&&h.includes('тяга идёт волной'),'tips by wants');ok(h.includes('Сильная тяга'),'high intensity warning');
-  startTimer(2);await sleep(2600);ok(document.getElementById('tm').textContent==='Волна прошла?','timer finished');
-  outcome('passed');ok(D.entries.find(e=>e.id===cid).outcome==='passed','outcome saved');
-  for(const k of ['morning','afternoon','evening','night']){tab('home');go('checkin',{kind:k});ok(document.body.innerHTML.includes(CP[k]),'checkin screen '+k);
-   if(k==='night'){F.drank=false;F.freeTime=true;F.relief=true;F.stronger='duties'}
-   if(k==='afternoon')F.thought=false;
-   if(k==='evening'){F.agreed=true;F.ritualDone=[D.ritual[0]]}
-   F.mood=6;saveCheck()}
-  const s=streaks();ok(s.sober>=1,'sober streak '+s.sober);ok(s.check>=1,'checkin streak '+s.check);
-  tab('home');const nDone=(document.getElementById('app').innerHTML.match(/✓ отмечено/g)||[]).length;ok(nDone===4,'4 checkpoints done: '+nDone+' '+JSON.stringify(D.entries.map(e=>e.kind||e.type)));
-  tab('history');ok(document.body.innerHTML.includes('Тяга 8/10'),'history shows craving');
-  tab('stats');ok(document.body.innerHTML.includes('именно опьянения'),'stats shows wants');
-  const md=buildMd();ok(md.includes('Тяга 8/10')&&md.includes('пил: нет')&&md.includes('исход: отпустило'),'markdown export content');
-  if(window.selfTestScenarios)await selfTestScenarios(ok,sleep);
-  if(HAS){const raw=Android.load();ok(JSON.parse(raw).entries.length===D.entries.length,'persisted to file');
-   const fn='selftest.zip';ok(Android.export2(md,exportScenariosJson(),fn)==='ok','export zip');ok(+Android.exportPath(fn)>100,'zip size '+Android.exportPath(fn));
-   Android.testNotify('evening');log('notification sent')}
- }catch(e){errs.push('exception '+e.message+' '+e.stack);console.error('SELFTEST EXC '+e.message)}
- D=JSON.parse(backup);save();testAudio.forEach(a=>HAS&&Android.deleteAudio(a));tab('home');
- console.log('SELFTEST_RESULT '+(errs.length?'FAIL '+errs.join(' | '):'OK'));
- document.title='SELFTEST_RESULT '+(errs.length?'FAIL':'OK');
- return errs;
-}
-if(location.search.includes('selftest'))setTimeout(selfTest,100);
-</script>
-<script src="ui-scenarios.js"></script></body></html>
+<script src="app.js"></script>
+</body></html>
